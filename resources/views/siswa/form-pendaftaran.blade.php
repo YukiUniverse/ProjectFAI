@@ -25,6 +25,6 @@
         <label class="form-label">Upload CV</label>
         <input type="file" class="form-control">
     </div>
-    <a href="{{ route('siswa.status') }}" class="btn btn-primary">Kirim Pendaftaran</a>
+    <a href="{{ route('siswa.status-pendaftaran') }}" class="btn btn-primary">Kirim Pendaftaran</a>
 </form>
 @endsection

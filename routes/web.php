@@ -10,7 +10,8 @@ Route::prefix('siswa')->group(function () {
     Route::view('/dashboard', 'siswa.dashboard')->name('siswa.dashboard');
     Route::view('/daftar-acara', 'siswa.daftar-acara')->name('siswa.daftar-acara');
     Route::view('/form-pendaftaran', 'siswa.form-pendaftaran')->name('siswa.form-pendaftaran');
-    Route::view('/status', 'siswa.status')->name('siswa.status');
+    Route::view('/status-pendaftaran', 'siswa.status-pendaftaran')->name('siswa.status-pendaftaran');
+    Route::view('/status-proposal', 'siswa.status-proposal')->name('siswa.status-proposal');
     Route::view('/proposal-ajukan', 'siswa.proposal-ajukan')->name('siswa.proposal-ajukan');
 
 
@@ -18,17 +19,7 @@ Route::prefix('siswa')->group(function () {
     Route::view('/panitia-dashboard', 'siswa.panitia-dashboard')->name('siswa.panitia-dashboard');
     Route::view('/panitia-detail', 'siswa.panitia-detail')->name('siswa.panitia-detail');
     Route::view('/panitia-jadwal', 'siswa.panitia-jadwal')->name('siswa.panitia-jadwal');
-    Route::view('/panitia-anggota', 'siswa.panitia-anggota')->name('siswa.panitia-anggota');
     Route::view('/panitia-task', 'siswa.panitia-task')->name('siswa.panitia-task');
-    Route::view('/panitia-chat', 'siswa.panitia-chat')->name('siswa.panitia-chat');
-    Route::view('/panitia-absensi', 'siswa.panitia-absensi')->name('siswa.panitia-absensi');
-    Route::view('/panitia-evaluasi', 'siswa.panitia-evaluasi')->name('siswa.panitia-evaluasi');
-
-    // Ketua dan pengurus inti
-    Route::view('/ketua-pendaftar', 'siswa.ketua-pendaftar')->name('siswa.ketua-pendaftar');
-    Route::view('/ketua-struktur', 'siswa.ketua-struktur')->name('siswa.ketua-struktur');
-    Route::view('/ketua-jadwal', 'siswa.ketua-jadwal')->name('siswa.ketua-jadwal');
-    Route::view('/ketua-tugas', 'siswa.ketua-tugas')->name('siswa.ketua-tugas');
 
     // Riwayat umum
     Route::view('/riwayat-acara', 'siswa.riwayat-acara')->name('siswa.riwayat-acara');

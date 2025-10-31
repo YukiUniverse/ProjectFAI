@@ -18,5 +18,5 @@
     @endforeach
 </div>
 
-<a href="{{ route('siswa.status') }}" class="btn btn-outline-secondary mt-3">Lihat Status Pendaftaran</a>
+
 @endsection

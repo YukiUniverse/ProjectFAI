@@ -28,7 +28,8 @@
             <h5 class="fw-bold mb-3">Menu</h5>
             <a href="{{ url('siswa/dashboard') }}">🏠 Dashboard</a>
             <a href="{{ url('siswa/daftar-acara') }}">📅 Daftar Acara</a>
-            <a href="{{ url('siswa/status') }}">📋 Status Pendaftaran & Proposal</a>
+            <a href="{{ url('siswa/status-pendaftaran') }}">📋 Status Pendaftaran</a>
+            <a href="{{ url('siswa/status-proposal') }}">📋 Status Proposal</a>
             <a href="{{ url('siswa/proposal-ajukan') }}">📝 Ajukan Proposal</a>
             <a href="{{ url('siswa/panitia-dashboard') }}">👥 Panitia</a>
             <a href="{{ url('siswa/riwayat-acara') }}">🕒 Riwayat</a>
