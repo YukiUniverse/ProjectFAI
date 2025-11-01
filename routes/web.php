@@ -1,29 +1,30 @@
 <?php
 
+use App\Http\Controllers\PanitiaController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'login')->name('login');
 Route::view('/login', 'login')->name('login.page');
 
 Route::prefix('siswa')->group(function () {
-    // Tahap siswa umum
-    Route::view('/dashboard', 'siswa.dashboard')->name('siswa.dashboard');
-    Route::view('/daftar-acara', 'siswa.daftar-acara')->name('siswa.daftar-acara');
-    Route::view('/form-pendaftaran', 'siswa.form-pendaftaran')->name('siswa.form-pendaftaran');
-    Route::view('/status-pendaftaran', 'siswa.status-pendaftaran')->name('siswa.status-pendaftaran');
-    Route::view('/status-proposal', 'siswa.status-proposal')->name('siswa.status-proposal');
-    Route::view('/proposal-ajukan', 'siswa.proposal-ajukan')->name('siswa.proposal-ajukan');
-
+    Route::get('/dashboard', [PanitiaController::class, 'dashboard'])->name('siswa.dashboard');
+    Route::get('/profile', [PanitiaController::class, 'profile'])->name('siswa.profile');
+    Route::get('/daftar-acara', [PanitiaController::class, 'daftarAcara'])->name('siswa.daftar-acara');
+    Route::get('/form-pendaftaran', [PanitiaController::class, 'formPendaftaran'])->name('siswa.form-pendaftaran');
+    Route::get('/status-pendaftaran', [PanitiaController::class, 'statusPendaftaran'])->name('siswa.status-pendaftaran');
+    Route::get('/status-proposal', [PanitiaController::class, 'statusProposal'])->name('siswa.status-proposal');
+    Route::get('/proposal-ajukan', [PanitiaController::class, 'proposalAjukan'])->name('siswa.proposal-ajukan');
 
     // Panitia (umum)
-    Route::view('/panitia-dashboard', 'siswa.panitia-dashboard')->name('siswa.panitia-dashboard');
-    Route::view('/panitia-detail', 'siswa.panitia-detail')->name('siswa.panitia-detail');
-    Route::view('/panitia-jadwal', 'siswa.panitia-jadwal')->name('siswa.panitia-jadwal');
-    Route::view('/panitia-task', 'siswa.panitia-task')->name('siswa.panitia-task');
+    Route::get('/panitia/dashboard/', [PanitiaController::class, 'panitiaDashboard'])->name('siswa.panitia-dashboard');
+    Route::get('/panitia/detail/', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail');
+    Route::get('/panitia/chat/', [PanitiaController::class, 'panitiaChat'])->name('siswa.panitia-chat');
+    Route::get('/panitia/pengurus/', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus');
+    Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal');
+    Route::get('/panitia/task/', [PanitiaController::class, 'panitiaTask'])->name('siswa.panitia-task');
 
     // Riwayat umum
-    Route::view('/riwayat-acara', 'siswa.riwayat-acara')->name('siswa.riwayat-acara');
-
+    Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
 });
 
 /*
