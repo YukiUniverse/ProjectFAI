@@ -44,20 +44,39 @@
                             <th>Agenda</th>
                             <th>Tempat</th>
                             <th>Status</th>
+                            <th>Aksi</th> <!-- Tambahan kolom Action -->
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($jadwal as $j)
                             <tr>
-                                <td>{{$j->tanggal}}</td>
+                                <td>{{ $j->tanggal }}</td>
                                 <td>{{ $j->kegiatan }}</td>
                                 <td>{{ $j->ruangan }}</td>
-                                <td><span class="badge bg-info text-dark">{{ $j->status }}</span></td>
+                                <td>
+                                    <span class="badge bg-info text-dark">{{ $j->status }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <!-- Tombol Edit -->
+                                    <a href="" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+
+                                    <!-- Tombol Delete -->
+                                    <form action="" method="POST" style="display:inline-block;"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
-
                     </tbody>
                 </table>
+
 
                 <h6 class="fw-bold text-secondary mt-3">➕ Tambah Jadwal Baru</h6>
                 <form class="row g-2">
@@ -105,6 +124,7 @@
                             <th>Tugas</th>
                             <th>Tenggat</th>
                             <th>Status</th>
+                            <th>Aksi</th> <!-- Tambahan kolom -->
                         </tr>
                     </thead>
                     <tbody>
@@ -113,11 +133,27 @@
                                 <td>{{ $t->nama }}</td>
                                 <td>{{ $t->deadline }}</td>
                                 <td><span class="badge bg-success">{{ $t->status }}</span></td>
-                            </tr>
+                                <td class="text-center">
+                                    <!-- Tombol Edit -->
+                                    <a href="" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
 
+                                    <!-- Tombol Delete -->
+                                    <form action="" method="POST" style="display:inline-block;"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus tugas ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>
+
 
                 <h6 class="fw-bold text-secondary mt-3">➕ Tambah Tugas Baru</h6>
                 <form class="row g-2">
