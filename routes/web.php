@@ -22,7 +22,7 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 
     // Panitia (umum)
     Route::get('/panitia/dashboard/', [PanitiaController::class, 'panitiaDashboard'])->name('siswa.panitia-dashboard');
-    Route::get('/panitia/detail/', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail');
+    Route::get('/panitia/detail/{activityCode}', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail');
     Route::get('/panitia/chat/', [PanitiaController::class, 'panitiaChat'])->name('siswa.panitia-chat');
     Route::get('/panitia/pengurus/', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus');
     Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal');

@@ -9,13 +9,16 @@
         style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">💬</a>
 
     <div class="card shadow-sm mb-4 p-4">
-        <h4 class="fw-bold text-primary">Festival Kampus 2025</h4>
-        <p>Acara tahunan kampus yang diselenggarakan oleh mahasiswa lintas jurusan dengan berbagai kegiatan, lomba, dan
-            seminar inspiratif.</p>
+        <h4 class="fw-bold text-primary">{{$activity->activity_name}}</h4>
+        <p>{{$activity->activity_description}}</p>
         <ul class="list-unstyled">
-            <li><strong>Tanggal:</strong> 12–15 Desember 2025</li>
+            <li>
+                <strong>Tanggal:</strong>
+                {{ \Carbon\Carbon::parse($activity->start_datetime)->format('d M Y, H:i') }} -
+                {{ \Carbon\Carbon::parse($activity->end_datetime)->format('d M Y, H:i') }}
+            </li>
             <li><strong>Lokasi:</strong> Aula Utama Kampus</li>
-            <li><strong>Status:</strong> Aktif</li>
+            <li><strong>Status:</strong> {{ $activity->status}}</li>
             <li><strong>Posisimu:</strong> Ketua Panitia</li>
         </ul>
     </div>
@@ -26,7 +29,6 @@
                 Jadwal</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#anggota">👥 Anggota</button>
         </li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tugas">🗒️ Tugas</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#evaluasi">⭐ Evaluasi</button>
         </li>
     </ul>
@@ -103,9 +105,9 @@
                     <tbody>
                         @foreach ($panitia as $p)
                             <tr>
-                                <td>{{ $p->nama}}</td>
-                                <td>{{ $p->jabatan }}</td>
-                                <td>{{ $p->divisi }}</td>
+                                <td>{{ $p->student->full_name}}</td>
+                                <td>{{ $p->role->role_name }}</td>
+                                <td>{{ $p->subRole->sub_role_name_en }}</td>
                             </tr>
 
                         @endforeach
@@ -113,57 +115,6 @@
                 </table>
             </div>
         </div>
-
-        <!-- 🗒️ TUGAS -->
-        <div class="tab-pane fade" id="tugas">
-            <div class="card shadow-sm p-4">
-                <h5 class="fw-bold text-primary mb-3">🗒️ Daftar Tugas Divisi</h5>
-                <table class="table table-bordered align-middle mb-3">
-                    <thead class="table-warning text-center">
-                        <tr>
-                            <th>Tugas</th>
-                            <th>Tenggat</th>
-                            <th>Status</th>
-                            <th>Aksi</th> <!-- Tambahan kolom -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($tugas as $t)
-                            <tr>
-                                <td>{{ $t->nama }}</td>
-                                <td>{{ $t->deadline }}</td>
-                                <td><span class="badge bg-success">{{ $t->status }}</span></td>
-                                <td class="text-center">
-                                    <!-- Tombol Edit -->
-                                    <a href="" class="btn btn-sm btn-warning">
-                                        <i class="bi bi-pencil-square"></i> Edit
-                                    </a>
-
-                                    <!-- Tombol Delete -->
-                                    <form action="" method="POST" style="display:inline-block;"
-                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus tugas ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="bi bi-trash"></i> Hapus
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-
-
-                <h6 class="fw-bold text-secondary mt-3">➕ Tambah Tugas Baru</h6>
-                <form class="row g-2">
-                    <div class="col-md-6"><input type="text" class="form-control" placeholder="Nama Tugas"></div>
-                    <div class="col-md-4"><input type="date" class="form-control"></div>
-                    <div class="col-md-2"><button class="btn btn-success w-100">Tambah</button></div>
-                </form>
-            </div>
-        </div>
-
 
 
 
@@ -186,9 +137,9 @@
                         <tbody>
                             @foreach($panitia as $p)
                                 <tr>
-                                    <td>{{ $p->nama }}</td>
-                                    <td>{{ $p->jabatan }}</td>
-                                    <td>{{ $p->divisi }}</td>
+                                    <td>{{ $p->student->full_name}}</td>
+                                    <td>{{ $p->role->role_name }}</td>
+                                    <td>{{ $p->subRole->sub_role_name_en }}</td>
                                     <td class="text-center">
                                         <select class="form-select w-auto mx-auto">
                                             <option>★ ☆ ☆ ☆ (1)</option>

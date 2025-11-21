@@ -23,6 +23,12 @@ class RecruitmentRegistration extends Model
         return $this->belongsTo(Student::class, 'student_id', 'student_id');
     }
 
+    // Mahasiswa yang daftar
+    public function activityDetail()
+    {
+        return $this->belongsTo(StudentActivity::class, 'student_activity_id', 'student_activity_id');
+    }
+
     // Pilihan Divisi 1
     public function firstChoice()
     {
