@@ -36,7 +36,7 @@ return new class extends Migration {
             $table->dateTime('end_datetime')->nullable();
 
             // Kolom tambahan untuk kontrol alur
-            $table->enum('status', ['preparation', 'open_recruitment', 'interview', 'active', 'grading', 'finished'])->default('preparation');
+            $table->enum('status', ['preparation', 'open_recruitment', 'interview', 'active', 'grading_1', 'grading_2', 'finished'])->default('preparation');
 
             $table->timestamps();
 

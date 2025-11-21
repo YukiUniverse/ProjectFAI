@@ -1,15 +1,34 @@
 @extends('layouts.app')
 @section('title', 'BPH')
 @section('content')
+    <style>
+        .description-box {
+            background-color: #f8f9fa;
+            /* Light gray */
+            border-left: 5px solid #0d6efd;
+            /* Blue accent on the left */
+            transition: all 0.3s ease;
+        }
+
+        /* Optional: Specific style for the item currently being clicked/viewed */
+        .stepper-item.step-selected .step-counter {
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.3);
+            /* Glow effect */
+            transform: scale(1.1);
+        }
+    </style>
     <a href="{{ route('siswa.panitia-detail', $activity->activity_code) }}" class="btn btn-danger">Back</a>
     <h5 class="fw-bold text-primary mb-3">🧭 Fitur Pengurus Inti</h5>
     <ul class="nav nav-tabs mb-3">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pendaftar">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#timeline">
+                Timeline</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pertanyaan">
+                Pertanyaan</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pendaftar">
                 Pendaftar</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#struktur">Struktur</button>
         </li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#jadwal">Jadwal</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tugas">Tugas</button>
         </li>
 
         <li class="nav-item">
@@ -19,6 +38,7 @@
         </li>
     </ul>
     <div class="tab-content">
+        <div class="tab-pane fade" id="pendaftar">
         {{-- 1. Pesan Sukses --}}
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -138,8 +158,9 @@
                         <thead class="table-light text-center">
                             <tr>
                                 <th>Nama Panitia</th>
-                                <th>Divisi</th>
                                 <th>Jabatan</th>
+                                <th>Divisi</th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -156,18 +177,19 @@
                                 $jabatan = ['Ketua', 'Wakil Ketua', 'Sekretaris', 'Bendahara', 'Koordinator Divisi', 'Anggota'];
                             @endphp
 
-                            @foreach($panitia as $p)
+                            @foreach($dataPanitia as $p)
                                 <tr>
-                                    <td>{{ $p['nama'] }}</td>
-                                    <td>{{ $p['divisi'] }}</td>
-                                    <td>
-                                        <select class="form-select">
-                                            <option selected>- Pilih Jabatan -</option>
-                                            @foreach($jabatan as $j)
-                                                <option>{{ $j }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
+                                    <td>{{ $p->student->full_name }}</td>
+                                    <td>{{ $p->role->role_name }}</td>
+                                    <td>{{ $p->subRole->sub_role_name_en }}</td>
+                                    <!-- <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <select class="form-select">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <option selected>- Pilih Jabatan -</option>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @foreach($jabatan as $j)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <option>{{ $j }}</option>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @endforeach
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </select>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </td> -->
                                 </tr>
                             @endforeach
                         </tbody>
@@ -193,16 +215,107 @@
             </div>
         </div>
 
-        <!-- Tambah Tugas -->
-        <div class="tab-pane fade" id="tugas">
-            <div class="card shadow-sm p-4">
-                <h6 class="fw-bold text-secondary mt-3">🗂️ Tambah Tugas Panitia</h6>
-                <form class="row g-2">
-                    <div class="col-md-6"><input type="text" class="form-control" placeholder="Nama Tugas"></div>
-                    <div class="col-md-4"><input type="date" class="form-control"></div>
-                    <div class="col-md-2"><button class="btn btn-outline-primary w-100">Tambah Tugas</button></div>
-                </form>
+        <!-- Master Pertanyaan -->
+        <div class="tab-pane fade" id="pertanyaan">
+            @foreach ($listPertanyaanUntukDivisi as $d)
+                <div class="card shadow-sm p-4">
+                    <h6 class="fw-bold text-secondary mt-3">Pertanyaan untuk divisi {{ $d->sub_role_name }}</h6>
+                    <ol>
+                        @forelse($d->activityQuestions as $question)
+                            <li>{{ $question->question }}</li>
+                        @empty
+                            <div class="alert alert-secondary">
+                                No questions available for this division.
+                            </div>
+                        @endforelse
+                    </ol>
+                    <form class="row g-2 mb-3" method="post" action="">
+                        @csrf
+                        <div class="col-md-5"><input type="text" name="question" class="form-control"
+                                placeholder="Tambah Pertanyaan"></div>
+                        <div class="col-md-3"><button class="btn btn-outline-primary w-100">Tambah Pertanyaan</button></div>
+                    </form>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- Master Timeline -->
+        <div class="tab-pane fade show active" id="timeline">
+            @php
+                // 1. Define Key => [Label, Description]
+                $steps = [
+                    'preparation' => [
+                        'label' => 'Preparation',
+                        'desc' => 'Setting up the committee structure, defining roles, and preparing the timeline.'
+                    ],
+                    'open_recruitment' => [
+                        'label' => 'Open Rec',
+                        'desc' => 'Publishing registration forms and gathering applicant data.'
+                    ],
+                    'interview' => [
+                        'label' => 'Interview',
+                        'desc' => 'Conducting interviews to assess candidate skills and commitment.'
+                    ],
+                    'active' => [
+                        'label' => 'Active',
+                        'desc' => 'Committee is fully formed and currently executing work programs.'
+                    ],
+                    'grading_1' => [
+                        'label' => 'Start Grading',
+                        'desc' => 'Evaluating the performance of the committee members.'
+                    ],
+                    'grading_2' => [
+                        'label' => 'Final Grading',
+                        'desc' => 'Final evaluation by leader, reviewing the grades.'
+                    ],
+                    'finished' => [
+                        'label' => 'Finished',
+                        'desc' => 'Project is complete and the committee is disbanded.'
+                    ]
+                ];
+
+                $statusKeys = array_keys($steps);
+
+                // Example: Hardcoded current status for logic demo
+                $currentStatusKey = 'interview'; 
+            @endphp
+            <div class="timeline-container mt-3">
+                <div class="stepper-wrapper">
+                    @foreach($steps as $key => $data)
+                        @php
+                            $loopIndex = array_search($key, $statusKeys);
+                            $statusClass = 'active'; // Your logic here
+                        @endphp
+
+                        <div class="stepper-item {{ $statusClass }}"
+                            onclick="updateDescription(this, '{{ addslashes($data['desc']) }}')" style="cursor: pointer;">
+
+                            <div class="step-counter">
+                                {{ $loopIndex + 1 }}
+                            </div>
+                            <div class="step-name">{{ $data['label'] }}</div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="description-box mt-4 p-3 border rounded bg-light">
+                    <strong>Description:</strong>
+                    <p class="m-0" id="desc-text">Click on a step to see details.</p>
+                </div>
             </div>
+            <form action="" class="row g-2 mb-3" method="post">
+                @csrf
+                <select class="form-select col-md-3" name="status" id="">
+                    <option value="preparation">Preparation</option>
+                    <option value="open_recruitment">Open Recruitment</option>
+                    <option value="interview">Interview</option>
+                    <option value="active">Active</option>
+                    <option value="grading_1">Start Grading</option>
+                    <option value="grading_2">Final Grading</option>
+                    <option value="finished">Finish</option>
+                </select>
+                <button class="btn btn-active col-md-2" type="submit">Update Timeline</button>
+            </form>
         </div>
 
         <div class="tab-pane fade" id="hasil-evaluasi">
@@ -343,4 +456,18 @@
     </div>
     </div>
     </div>
+    <script>
+        function updateDescription(element, text) {
+            // 1. Update the text
+            document.getElementById('desc-text').innerText = text;
+
+            // 2. Optional: Highlight the clicked item visually
+            // Remove 'step-selected' from all items
+            document.querySelectorAll('.stepper-item').forEach(el => {
+                el.classList.remove('step-selected')
+            });
+            // Add it to the clicked one
+            element.classList.add('step-selected');
+        }
+    </script>
 @endsection

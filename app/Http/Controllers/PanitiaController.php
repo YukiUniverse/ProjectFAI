@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ActivityStructure;
 use App\Models\RecruitmentRegistration;
 use App\Models\StudentActivity;
+use App\Models\StudentRole;
+use App\Models\SubRole;
 use App\Models\StudentRating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -120,6 +122,24 @@ class PanitiaController extends Controller
     {
         return view('siswa.chat');
     }
+    public function panitiaPengurus($activityCode)
+    {
+        $dataPanitia = ActivityStructure::with(['activity', 'student', 'role', 'subRole']) // Load both relationships
+            ->whereHas('activity', function ($query) use ($activityCode) {
+                $query->where('activity_code', $activityCode);
+            })
+            ->get();
+        $activity = StudentActivity::where('activity_code', $activityCode)->first();
+        $listJabatan = StudentRole::all();
+        $listDivisi = SubRole::all();
+        $studentActivityId = $activity->student_activity_id;
+        $listPertanyaanUntukDivisi = SubRole::with([
+            'activityQuestions' => function ($query) use ($studentActivityId) {
+                // This logic only affects the questions attached, not the SubRole itself
+                $query->where('student_activity_id', $studentActivityId);
+            }
+        ])->get();
+        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi'));
     public function panitiaPengurus(Request $request, $activityCode)
     {
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();

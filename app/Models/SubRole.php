@@ -24,4 +24,8 @@ class SubRole extends Model
     {
         return $this->hasMany(ActivityStructure::class, 'sub_role_id', 'sub_role_id');
     }
+    public function activityQuestions()
+    {
+        return $this->hasMany(RecruitmentQuestion::class, 'sub_role_id', 'sub_role_id');
+    }
 }
