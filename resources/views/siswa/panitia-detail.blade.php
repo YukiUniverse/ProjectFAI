@@ -3,7 +3,7 @@
 @section('content')
     <div style="display: flex; justify-content: space-between;">
         <h3 class="mb-3">Detail Informasi Acara</h3>
-        <a href="{{ route('siswa.panitia-pengurus') }}" class="btn btn-primary">Mode BPH</a>
+        <a href="{{ route('siswa.panitia-pengurus', $activity->activity_code) }}" class="btn btn-primary">Mode BPH</a>
     </div>
     <a class="btn btn-success" href="{{ route('siswa.panitia-chat') }}"
         style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">💬</a>

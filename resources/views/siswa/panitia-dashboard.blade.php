@@ -1,109 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Dashboard Panitia')
 @section('content')
-    <style>
-        /* Container to allow scrolling on small screens */
-        .timeline-container {
-            overflow-x: auto;
-            padding-bottom: 10px;
-        }
-
-        .stepper-wrapper {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            min-width: 500px;
-            /* Ensures it doesn't squish on mobile */
-        }
-
-        .stepper-item {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-
-        .stepper-item::before {
-            position: absolute;
-            content: "";
-            border-bottom: 2px solid #ccc;
-            /* Default gray line */
-            width: 100%;
-            top: 15px;
-            left: -50%;
-            z-index: 2;
-        }
-
-        .stepper-item::after {
-            position: absolute;
-            content: "";
-            border-bottom: 2px solid #ccc;
-            width: 100%;
-            top: 15px;
-            left: 50%;
-            z-index: 2;
-        }
-
-        .stepper-item .step-counter {
-            position: relative;
-            z-index: 5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #ccc;
-            margin-bottom: 6px;
-            color: white;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        .stepper-item.active .step-counter {
-            background-color: #0d6efd;
-            /* Bootstrap Primary Blue */
-            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.2);
-            /* Pulsing effect */
-        }
-
-        .stepper-item.completed .step-counter {
-            background-color: #198754;
-            /* Bootstrap Success Green */
-        }
-
-        .stepper-item.completed::after,
-        .stepper-item.completed::before {
-            border-bottom: 2px solid #198754;
-            /* Green line for finished steps */
-        }
-
-        /* Remove line before first item and after last item */
-        .stepper-item:first-child::before {
-            content: none;
-        }
-
-        .stepper-item:last-child::after {
-            content: none;
-        }
-
-        .step-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: #6c757d;
-            text-align: center;
-        }
-
-        .stepper-item.active .step-name {
-            color: #0d6efd;
-        }
-
-        .stepper-item.completed .step-name {
-            color: #198754;
-        }
-    </style>
-
     <div>
         <h3>Dashboard Panitia</h3>
         <p class="text-muted">Lihat detail acara dan kegiatan aktif.</p>
@@ -123,7 +20,16 @@
                 // Find the numeric index of the current status (0 to 5)
                 // array_keys gets just the keys, array_search finds where the current status is in that list
                 $statusKeys = array_keys($steps);
-                $currentIndex = array_search($a->status, $statusKeys);
+                // 1. Create a temporary variable for the search
+                $searchStatus = $a->status;
+
+                // 2. Check for your specific variations and map them to the main key
+                if ($searchStatus == 'grading_1' || $searchStatus == 'grading_2') {
+                    $searchStatus = 'grading';
+                }
+
+                // 3. Find the index using the normalized $searchStatus instead of $a->status
+                $currentIndex = array_search($searchStatus, $statusKeys);
             @endphp
             <div class="card shadow-sm p-3 mb-4">
                 <div class="d-flex justify-content-between align-items-start">

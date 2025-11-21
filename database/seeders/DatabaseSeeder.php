@@ -90,9 +90,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         DB::table('sub_roles')->insert([
-            ['sub_role_id' => 1, 'sub_role_code' => 'SR01', 'sub_role_name' => 'Acara', 'sub_role_name_en' => 'Event'],
-            ['sub_role_id' => 2, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Media', 'sub_role_name_en' => 'Media'],
-            ['sub_role_id' => 3, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Logistik', 'sub_role_name_en' => 'Logistics'],
+            ['sub_role_id' => 1, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main'],
+            ['sub_role_id' => 2, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Acara', 'sub_role_name_en' => 'Event'],
+            ['sub_role_id' => 3, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Media', 'sub_role_name_en' => 'Media'],
+            ['sub_role_id' => 4, 'sub_role_code' => 'SR04', 'sub_role_name' => 'Logistik', 'sub_role_name_en' => 'Logistics'],
         ]);
 
         // 5. Users (Login)
@@ -184,7 +185,7 @@ class DatabaseSeeder extends Seeder
                 'student_activity_id' => $activityId,
                 'student_id' => 1, // Iris
                 'student_role_id' => 1, // Team Lead
-                'sub_role_id' => 1, // Acara
+                'sub_role_id' => 2, // Acara
                 'structure_name' => 'Project Manager',
                 'structure_points' => 200,
                 'created_at' => now(),
@@ -193,7 +194,7 @@ class DatabaseSeeder extends Seeder
                 'student_activity_id' => $activityId,
                 'student_id' => 2, // Mateo
                 'student_role_id' => 4, // Coordinator
-                'sub_role_id' => 2, // Media
+                'sub_role_id' => 3, // Media
                 'structure_name' => 'Head of Creative & Media',
                 'structure_points' => 150,
                 'created_at' => now(),
@@ -304,8 +305,8 @@ class DatabaseSeeder extends Seeder
 
         // 9. Buat Pertanyaan
         DB::table('recruitment_questions')->insert([
-            ['student_activity_id' => $activityId, 'sub_role_id' => null, 'question' => 'Apa motivasi kamu?'],
-            ['student_activity_id' => $activityId, 'sub_role_id' => 2, 'question' => 'Bisa pakai Adobe Illustrator?'], // Khusus Media
+            ['student_activity_id' => $activityId, 'sub_role_id' => 1, 'question' => 'Apa motivasi kamu?'],
+            ['student_activity_id' => $activityId, 'sub_role_id' => 3, 'question' => 'Bisa pakai Adobe Illustrator?'], // Khusus Media
         ]);
 
         // 10. Registrasi Peserta
@@ -376,7 +377,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 15. Update Status Acara ke Grading
-        DB::table('student_activities')->where('student_activity_id', $activityId)->update(['status' => 'grading']);
+        DB::table('student_activities')->where('student_activity_id', $activityId)->update(['status' => 'grading_1']);
 
         // 16. Rating (Sora menilai Mateo)
         DB::table('student_ratings')->insert([
