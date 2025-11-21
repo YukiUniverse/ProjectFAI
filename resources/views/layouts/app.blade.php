@@ -48,7 +48,7 @@
             <span class="navbar-brand fw-bold " style="color:#198754;">Portal Siswa</span>
             <div class="profile-pic-container larger">
                 <a href="{{ route('siswa.profile') }}">
-                    <img src="https://avatar.iran.liara.run/public" width="50" height="50" alt="Foto Profil Lain"
+                    <img src="https://avatar.iran.liara.run/public/1" width="50" height="50" alt="Foto Profil Lain"
                         class="profile-pic">
                 </a>
             </div>

@@ -15,13 +15,25 @@
 
                         <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
                             <div class="profile-pic-container me-4">
-                                <img src="https://avatar.iran.liara.run/public" width="100" height="100" alt="Foto Profil"
+                                <img src="https://avatar.iran.liara.run/public/1" width="100" height="100" alt="Foto Profil"
                                     class="profile-pic">
                             </div>
 
                             <div>
-                                <h2 class="mb-0 fw-bold">Nama Pengguna</h2>
-                                <p class="text-muted">ID: 12345 | Status: Aktif</p>
+                                <h2 class="mb-0 fw-bold">
+                                    @if(Auth::user()->role == 'student')
+                                        {{ Auth::user()->student->full_name }}
+                                    @else
+                                        {{ Auth::user()->lecturer->full_name }}
+                                    @endif
+                                </h2>
+                                <p class="text-muted">ID:
+                                    @if(Auth::user()->role == 'student')
+                                        {{ Auth::user()->student_number }}
+                                    @else
+                                        {{ Auth::user()->lecturer_code }}
+                                    @endif
+                                </p>
                             </div>
                         </div>
 

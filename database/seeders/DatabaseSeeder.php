@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -137,11 +138,11 @@ class DatabaseSeeder extends Seeder
                 'role' => 'lecturer'
             ],
             [
-                'name' => 'Admin',
+                'name' => 'Ir. Paula Este',
                 'email' => 'admin@mail.com',
-                'password' => Hash::make('admin'),
+                'password' => Hash::make('password'),
                 'student_number' => null,   // <--- Explicitly null
-                'lecturer_code' => null,  // <--- Now this will get saved
+                'lecturer_code' => 'L022',  // <--- Now this will get saved
                 'role' => 'admin'
             ],
         ]);
@@ -150,36 +151,40 @@ class DatabaseSeeder extends Seeder
         // PHASE 2: PROPOSAL & ACTIVITY (PREPARATION)
         // ==========================================
 
-        // 6. Proposal (Iris Mengajukan)
-        $proposalId = DB::table('proposals')->insertGetId([
-            'student_id' => 1,
+        // --- SCENARIO 1: INNOVATION HACKDAY (Status: Open Recruitment) ---
+        // Ini skenario utama untuk tes alur pendaftaran
+
+        // 6.1. Proposal Hackday
+        $propHackday = DB::table('proposals')->insertGetId([
+            'student_id' => 1, // Iris (Ketua)
             'title' => 'Innovation Hackday 2024',
-            'description' => 'Lomba koding 24 jam.',
+            'description' => 'Proposal kegiatan kompetisi pengembangan perangkat lunak tingkat universitas.',
             'status' => 'accepted',
             'created_at' => now(),
         ]);
 
-        // 7. Activity Created (Otomatis by System biasanya)
+        // 7.1. Activity Hackday
         $activityId = DB::table('student_activities')->insertGetId([
-            'proposal_id' => $proposalId,
+            'proposal_id' => $propHackday,
             'activity_code' => 'ACT1001',
-            'activity_catalog_code' => 'EVT',
-            'student_organization_id' => 1,
+            'activity_catalog_code' => 'EVT', // Event
+            'student_organization_id' => 1, // HIMA IF
             'activity_name' => 'Innovation Hackday 2024',
-            'start_datetime' => '2024-10-10 09:00:00',
-            'end_datetime' => '2024-10-11 09:00:00',
-            'status' => 'open_recruitment', // Langsung masuk tahap OR
+            // Deskripsi lebih menarik
+            'activity_description' => 'Bergabunglah dalam maraton koding 24 jam di mana inovasi bertemu dengan eksekusi! Tantang dirimu untuk menyelesaikan masalah nyata menggunakan teknologi terkini (AI, IoT, Blockchain) dan menangkan total hadiah puluhan juta rupiah. Siapkan tim terbaikmu!',
+            'start_datetime' => Carbon::parse('2024-11-10 09:00:00'),
+            'end_datetime' => Carbon::parse('2024-11-11 15:00:00'),
+            'status' => 'open_recruitment', // Sedang buka pendaftaran panitia
             'created_at' => now(),
         ]);
 
-        // 8. Set Activity Structure Awal (BPH Inti)
-        // Iris sebagai Ketua, Mateo sebagai Koor Media
+        // 8.1. Structure Hackday (BPH Inti)
         DB::table('activity_structures')->insert([
             [
                 'student_activity_id' => $activityId,
                 'student_id' => 1, // Iris
-                'student_role_id' => 1, // Lead
-                'sub_role_id' => 1, // Acara (anggap aja ketua pegang acara)
+                'student_role_id' => 1, // Team Lead
+                'sub_role_id' => 1, // Acara
                 'structure_name' => 'Project Manager',
                 'structure_points' => 200,
                 'created_at' => now(),
@@ -189,8 +194,106 @@ class DatabaseSeeder extends Seeder
                 'student_id' => 2, // Mateo
                 'student_role_id' => 4, // Coordinator
                 'sub_role_id' => 2, // Media
-                'structure_name' => 'Head of Media',
+                'structure_name' => 'Head of Creative & Media',
                 'structure_points' => 150,
+                'created_at' => now(),
+            ]
+        ]);
+
+
+        // --- SCENARIO 2: VISUAL ART EXHIBITION (Status: Active/Berjalan) ---
+        // Skenario untuk tes jadwal (schedule) dan grading nanti
+
+        // 6.2. Proposal Art
+        $propArt = DB::table('proposals')->insertGetId([
+            'student_id' => 2, // Mateo (Ketua)
+            'title' => 'Chromatic: Visual Art Exhibition',
+            'description' => 'Pameran karya seni mahasiswa DKV.',
+            'status' => 'accepted',
+            'created_at' => now()->subMonth(),
+        ]);
+
+        // 7.2. Activity Art
+        $actArt = DB::table('student_activities')->insertGetId([
+            'proposal_id' => $propArt,
+            'activity_code' => 'ACT2005',
+            'activity_catalog_code' => 'EXH', // Exhibition
+            'student_organization_id' => 2, // BEM
+            'activity_name' => 'Chromatic Exhibition 2024',
+            'activity_description' => 'Selami dunia penuh warna di Chromatic 2024! Pameran seni visual interaktif yang menggabungkan seni tradisional dan digital projection mapping. Saksikan karya terbaik dari mahasiswa berbakat yang akan memanjakan matamu.',
+            'start_datetime' => Carbon::now()->addDays(5), // Acara 5 hari lagi
+            'end_datetime' => Carbon::now()->addDays(7),
+            'status' => 'active', // Panitia sudah lengkap, sedang persiapan teknis
+            'created_at' => now()->subMonth(),
+        ]);
+
+        // 8.2. Structure Art (Sudah lengkap panitianya)
+        DB::table('activity_structures')->insert([
+            [
+                'student_activity_id' => $actArt,
+                'student_id' => 2, // Mateo
+                'student_role_id' => 1, // Lead
+                'sub_role_id' => 2, // Media (Anak DKV pegang media & acara)
+                'structure_name' => 'Exhibition Director',
+                'structure_points' => 250,
+                'created_at' => now()->subMonth(),
+            ],
+            [
+                'student_activity_id' => $actArt,
+                'student_id' => 3, // Sora
+                'student_role_id' => 2, // Secretary
+                'sub_role_id' => 1, // Acara
+                'structure_name' => 'Main Secretary',
+                'structure_points' => 180,
+                'created_at' => now()->subMonth(),
+            ],
+            [
+                'student_activity_id' => $actArt,
+                'student_id' => 1, // Iris (Jadi anggota biasa disini)
+                'student_role_id' => 3, // Member
+                'sub_role_id' => 3, // Logistik
+                'structure_name' => 'Logistics Staff',
+                'structure_points' => 100,
+                'created_at' => now()->subMonth(),
+            ]
+        ]);
+
+
+        // --- SCENARIO 3: ESPORTS VALORANT CUP (Status: Preparation/Baru dibuat) ---
+        // Skenario untuk tes ketua baru appoint BPH (Flow awal banget)
+
+        // 6.3. Proposal Esports
+        $propSport = DB::table('proposals')->insertGetId([
+            'student_id' => 4, // Riku (Ketua)
+            'title' => 'Campus Valorant Championship',
+            'description' => 'Turnamen Valorant antar fakultas.',
+            'status' => 'accepted',
+            'created_at' => now()->subDays(2),
+        ]);
+
+        // 7.3. Activity Esports
+        $actSport = DB::table('student_activities')->insertGetId([
+            'proposal_id' => $propSport,
+            'activity_code' => 'ACT3099',
+            'activity_catalog_code' => 'CMP', // Competition
+            'student_organization_id' => 1, // HIMA IF
+            'activity_name' => 'Valorant Championship: Retake',
+            'activity_description' => 'Buktikan skill aim-mu di turnamen Valorant terbesar se-kampus! Rebut prize pool total Rp 5.000.000 dan gelar juara bertahan. Dilengkapi dengan live stream caster profesional dan setup PC high-end di auditorium utama.',
+            'start_datetime' => Carbon::parse('2024-12-20 10:00:00'),
+            'end_datetime' => Carbon::parse('2024-12-22 20:00:00'),
+            'status' => 'preparation', // Belum buka pendaftaran, Riku baru sendirian
+            'created_at' => now(),
+        ]);
+
+        // 8.3. Structure Esports (Cuma Riku sendirian)
+        DB::table('activity_structures')->insert([
+            [
+                'student_activity_id' => $actSport,
+                'student_id' => 4, // Riku
+                'student_role_id' => 1, // Lead
+                'sub_role_id' => 1, // Acara
+                'structure_name' => 'Head of Tournament',
+                'structure_points' => 220,
                 'created_at' => now(),
             ]
         ]);
