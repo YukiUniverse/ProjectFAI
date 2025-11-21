@@ -9,6 +9,7 @@ Route::get('/', function () {
 });
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('tryLogin');
+Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(function () {
     Route::get('/dashboard', [PanitiaController::class, 'dashboard'])->name('siswa.dashboard');

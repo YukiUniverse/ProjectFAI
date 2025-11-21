@@ -1,54 +1,74 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') | Portal Siswa</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Portal Siswa</title>
+    <!-- Ensure Bootstrap 5 CSS is loaded -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .sidebar {
-            min-height: 100vh;
-            background-color: #198754;
-            color: white;
-        }
-
-        .sidebar a {
-            color: white;
-            text-decoration: none;
+        /* Custom Sidebar Styling */
+        .sidebar-link {
             display: block;
             padding: 10px 15px;
+            text-decoration: none;
+            color: #333;
             border-radius: 8px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            font-weight: 500;
         }
 
-        .sidebar a:hover,
-        .sidebar a.active {
-            background-color: rgba(255, 255, 255, 0.2);
+        .sidebar-link:hover {
+            background-color: #e9ecef;
+            color: #198754;
+            transform: translateX(5px);
+            /* Subtle animation */
         }
 
-        .content {
-            padding: 30px;
+        .sidebar-link.active {
+            background-color: #e8f5e9;
+            /* Light green background */
+            color: #198754;
+            font-weight: bold;
+            border-left: 4px solid #198754;
         }
 
-        .navbar {
-            background-color: white;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        /* Profile Picture Hover */
+        .profile-pic {
+            border: 2px solid #198754;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .profile-pic:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
 
-<body>
+<body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
-        <div class="container-fluid" style="display:flex; justify-content: space-between;">
-            <span class="navbar-brand fw-bold " style="color:#198754;">Portal Siswa</span>
-            <div class="profile-pic-container larger">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container-fluid">
+            <!-- 1. Hamburger Button (Visible only on Mobile) -->
+            <button class="navbar-toggler me-2 border-0" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Brand -->
+            <a class="navbar-brand fw-bold me-auto" href="#" style="color:#198754;">
+                🎓 Portal Siswa
+            </a>
+
+            <!-- Profile Picture -->
+            <div class="profile-pic-container">
                 <a href="{{ route('siswa.profile') }}">
-                    <img src="https://avatar.iran.liara.run/public/1" width="50" height="50" alt="Foto Profil Lain"
+                    <img src="https://avatar.iran.liara.run/public/1" width="40" height="40" alt="Profile"
                         class="profile-pic">
                 </a>
             </div>
@@ -57,24 +77,76 @@
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-2 sidebar p-3">
-                <h5 class="fw-bold mb-3">Menu</h5>
-                <a href="{{ route('siswa.dashboard') }}">🏠 Dashboard</a>
-                <a href="{{ route('siswa.daftar-acara') }}">📅 Daftar Acara</a>
-                <a href="{{ route('siswa.status-pendaftaran') }}">📋 Status Pendaftaran</a>
-                <a href="{{ route('siswa.status-proposal') }}">📋 Status Proposal</a>
-                <a href="{{ route('siswa.proposal-ajukan') }}">📝 Ajukan Proposal</a>
-                <a href="{{ route('siswa.panitia-dashboard') }}">👥 Panitia</a>
-                <a href="{{ route('siswa.riwayat-acara') }}">🕒 Riwayat</a>
-                <a href="{{ route('login') }}">🚪 Logout</a>
+
+            <!-- SIDEBAR (Offcanvas on Mobile, Static Col on Desktop) -->
+            <!-- 'offcanvas-lg' means it is offcanvas below Large screens, and normal div on Large screens -->
+            <div class="col-lg-3 col-xl-2 sidebar offcanvas-lg offcanvas-start bg-white border-end vh-100-lg"
+                tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+
+                <!-- Header for Mobile Menu (Close Button) -->
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title fw-bold text-success" id="sidebarMenuLabel">Menu Portal</h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                        data-bs-target="#sidebarMenu" aria-label="Close"></button>
+                </div>
+
+                <div class="offcanvas-body d-flex flex-column p-3 h-100">
+                    <p class="text-uppercase text-muted small fw-bold mb-2">Utama</p>
+
+                    <a class="sidebar-link {{ request()->routeIs('siswa.dashboard') ? 'active' : '' }}"
+                        href="{{ route('siswa.dashboard') }}">
+                        📊 Dashboard
+                    </a>
+                    <a class="sidebar-link {{ request()->routeIs('siswa.daftar-acara') ? 'active' : '' }}"
+                        href="{{ route('siswa.daftar-acara') }}">
+                        🔍 Cari Kepanitiaan
+                    </a>
+                    <a class="sidebar-link {{ request()->routeIs('siswa.panitia-dashboard') ? 'active' : '' }}"
+                        href="{{ route('siswa.panitia-dashboard') }}">
+                        🗓️ Acara Saya
+                    </a>
+
+                    <p class="text-uppercase text-muted small fw-bold mb-2 mt-3">Administrasi</p>
+
+                    <a class="sidebar-link {{ request()->routeIs('siswa.status-pendaftaran') ? 'active' : '' }}"
+                        href="{{ route('siswa.status-pendaftaran') }}">
+                        📜 History Daftar
+                    </a>
+                    <a class="sidebar-link {{ request()->routeIs('siswa.proposal-ajukan') ? 'active' : '' }}"
+                        href="{{ route('siswa.proposal-ajukan') }}">
+                        📤 Ajukan Proposal
+                    </a>
+                    <a class="sidebar-link {{ request()->routeIs('siswa.status-proposal') ? 'active' : '' }}"
+                        href="{{ route('siswa.status-proposal') }}">
+                        🚥 Status Proposal
+                    </a>
+                    <a class="sidebar-link {{ request()->routeIs('siswa.riwayat-acara') ? 'active' : '' }}"
+                        href="{{ route('siswa.riwayat-acara') }}">
+                        🏅 History Selesai
+                    </a>
+
+                    <!-- Spacer to push logout to bottom on mobile -->
+                    <div class="mt-auto pt-4">
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2">
+                                🚪 Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-10 content">
+
+            <!-- MAIN CONTENT -->
+            <div class="col-lg-9 col-xl-10 p-4">
                 @yield('content')
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 5 JS (Required for the Mobile Sidebar Toggle) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
