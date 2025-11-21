@@ -1,12 +1,16 @@
 <?php
 
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PanitiaController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'login')->name('login');
-Route::view('/login', 'login')->name('login.page');
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('tryLogin');
 
-Route::prefix('siswa')->group(function () {
+Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(function () {
     Route::get('/dashboard', [PanitiaController::class, 'dashboard'])->name('siswa.dashboard');
     Route::get('/profile', [PanitiaController::class, 'profile'])->name('siswa.profile');
     Route::get('/daftar-acara', [PanitiaController::class, 'daftarAcara'])->name('siswa.daftar-acara');
@@ -32,7 +36,7 @@ Route::prefix('siswa')->group(function () {
 | ROUTE ADMIN
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware(['auth', 'check-role:admin'])->group(function () {
     Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
     Route::view('/acara', 'admin.acara-list')->name('admin.acara-list');
     Route::view('/proposal', 'admin.proposal-list')->name('admin.proposal-list');
@@ -46,7 +50,7 @@ Route::prefix('admin')->group(function () {
 | ROUTE DOSEN
 |--------------------------------------------------------------------------
 */
-Route::prefix('dosen')->group(function () {
+Route::prefix('dosen')->middleware(['auth', 'check-role:lecturer'])->group(function () {
     Route::view('/dashboard', 'dosen.dashboard')->name('dosen.dashboard');
     Route::view('/laporan-kpi', 'dosen.laporan-kpi')->name('dosen.laporan-kpi');
 });

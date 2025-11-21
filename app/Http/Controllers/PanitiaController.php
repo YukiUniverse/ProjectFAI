@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\StudentActivity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PanitiaController extends Controller
 {
@@ -18,31 +20,13 @@ class PanitiaController extends Controller
 
     public function daftarAcara()
     {
-        $dataAcara = [
-            (object) [
-                'nama' => 'Lomba Debat Bahasa Inggris (LDBI)',
-                'deskripsi' => 'Ajang kompetisi debat bergengsi untuk mengasah kemampuan argumentasi dan berbahasa Inggris siswa. Terbuka untuk semua jenjang kelas.'
-            ],
-            (object) [
-                'nama' => 'Festival Seni dan Budaya (FSB)',
-                'deskripsi' => 'Perayaan kreativitas siswa melalui pameran lukisan, pertunjukan musik tradisional, dan tari modern. Disediakan stand kuliner lokal.'
-            ],
-            (object) [
-                'nama' => 'Seminar Karir: Masa Depan Digital',
-                'deskripsi' => 'Seminar inspiratif yang menghadirkan praktisi industri digital terkemuka untuk membahas tren karir di era teknologi 4.0.'
-            ],
-            (object) [
-                'nama' => 'Olimpiade Sains Terapan',
-                'deskripsi' => 'Kompetisi ilmiah yang menguji pengetahuan siswa di bidang Fisika, Kimia, dan Biologi dengan fokus pada aplikasi praktis.'
-            ],
-            (object) [
-                'nama' => 'Turnamen E-Sport Pelajar',
-                'deskripsi' => 'Kompetisi persahabatan antar kelas untuk game-game populer. Bertujuan mempererat solidaritas dan sportifitas di kalangan siswa.'
-            ],
-        ];
+        $studentId = Auth::user()->student->student_id;
 
-        // Ubah array tersebut menjadi Collection Laravel
-        $acara = collect($dataAcara);
+        $acara = StudentActivity::with('members') // Optional: Eager load members if you need to display them
+            ->whereDoesntHave('members', function ($query) use ($studentId) {
+                $query->where('activity_structures.student_id', $studentId);
+            })
+            ->get();
         return view('siswa.daftar-acara', compact('acara'));
     }
 
@@ -69,7 +53,12 @@ class PanitiaController extends Controller
     // Panitia (umum)
     public function panitiaDashboard()
     {
-        return view('siswa.panitia-dashboard');
+        $studentId = Auth::user()->student->student_id;
+        $acara = StudentActivity::with('members')->whereHas('members', function ($query) use ($studentId) {
+            $query->where('activity_structures.student_id', $studentId);
+        })
+            ->get();
+        return view('siswa.panitia-dashboard', compact('acara'));
     }
 
     public function panitiaDetail()

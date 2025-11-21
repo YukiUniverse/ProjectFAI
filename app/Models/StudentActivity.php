@@ -17,6 +17,7 @@ class StudentActivity extends Model
         'activity_catalog_code',   // EVT, WKS, CMP
         'student_organization_id', // Ormawa penyelenggara
         'activity_name',           // Nama acara
+        'activity_description',           // Nama acara
         'start_datetime',
         'end_datetime',
         'status',      // Tambahan: preparation, open_recruitment, active, finished

@@ -9,8 +9,8 @@
             <div class="col-md-4 mb-3">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5>{{ $a->nama }}</h5>
-                        <p>{{ $a->deskripsi }}</p>
+                        <h5>{{ $a->activity_name }}</h5>
+                        <p>{{ $a->activity_description }}</p>
                         <a href="{{ route('siswa.form-pendaftaran') }}" class="btn btn-primary w-100">Daftar Panitia</a>
                     </div>
                 </div>

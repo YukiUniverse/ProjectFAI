@@ -31,6 +31,7 @@ return new class extends Migration {
             $table->string('activity_catalog_code', 10);
             $table->unsignedInteger('student_organization_id');
             $table->string('activity_name', 255);
+            $table->text('activity_description')->nullable();
             $table->dateTime('start_datetime');
             $table->dateTime('end_datetime')->nullable();
 
