@@ -60,45 +60,94 @@
         <div class="tab-pane fade show active" id="timeline">
             @php
                 $steps = [
-                    'preparation' => ['label' => 'Preparation', 'desc' => 'Setting up the committee structure.'],
+                    'preparation'      => ['label' => 'Preparation', 'desc' => 'Setting up the committee structure.'],
                     'open_recruitment' => ['label' => 'Open Rec', 'desc' => 'Publishing registration forms.'],
-                    'interview' => ['label' => 'Interview', 'desc' => 'Conducting interviews.'],
-                    'active' => ['label' => 'Active', 'desc' => 'Committee is executing work programs.'],
-                    'grading_1' => ['label' => 'Start Grading', 'desc' => 'Evaluating performance.'],
-                    'grading_2' => ['label' => 'Final Grading', 'desc' => 'Final evaluation by leader.'],
-                    'finished' => ['label' => 'Finished', 'desc' => 'Project complete.']
+                    'interview'        => ['label' => 'Interview', 'desc' => 'Conducting interviews.'],
+                    'active'           => ['label' => 'Active', 'desc' => 'Committee is executing work programs.'],
+                    'grading_1'        => ['label' => 'Start Grading', 'desc' => 'Evaluating performance.'],
+                    'grading_2'        => ['label' => 'Final Grading', 'desc' => 'Final evaluation by leader.'],
+                    'finished'         => ['label' => 'Finished', 'desc' => 'Project complete.']
                 ];
+                
                 $statusKeys = array_keys($steps);
+                
+                // 1. Cari Index (Urutan) dari status saat ini di database
+                $currentStatusIndex = array_search($activity->status, $statusKeys);
             @endphp
+
 
             <div class="timeline-container mt-3">
                 <div class="stepper-wrapper">
                     @foreach($steps as $key => $data)
-                        @php $loopIndex = array_search($key, $statusKeys); @endphp
-                        <div class="stepper-item" onclick="updateDescription(this, '{{ addslashes($data['desc']) }}')" style="cursor: pointer;">
-                            <div class="step-counter">{{ $loopIndex + 1 }}</div>
+                        @php 
+                            $loopIndex = $loop->index; 
+                            $statusClass = '';
+
+                            // LOGIKA PENENTUAN STATUS
+                            if ($currentStatusIndex !== false) {
+                                if ($loopIndex < $currentStatusIndex) {
+                                    $statusClass = 'completed'; // Sudah lewat
+                                } elseif ($loopIndex == $currentStatusIndex) {
+                                    $statusClass = 'active';    // Sedang berlangsung
+                                }
+                            }
+                        @endphp
+
+                        <div class="stepper-item {{ $statusClass }}" 
+                            onclick="updateDescription(this, '{{ addslashes($data['desc']) }}')" 
+                            style="cursor: pointer;">
+                            
+                            <div class="step-counter">
+                                {{-- Jika selesai, tampilkan Centang, jika tidak tampilkan Nomor --}}
+                                @if($statusClass == 'completed')
+                                    ✔
+                                @else
+                                    {{ $loopIndex + 1 }}
+                                @endif
+                            </div>
+                            
                             <div class="step-name">{{ $data['label'] }}</div>
                         </div>
                     @endforeach
                 </div>
+
                 <div class="description-box mt-4 p-3 border rounded bg-light">
                     <strong>Description:</strong>
-                    <p class="m-0" id="desc-text">Click on a step to see details.</p>
+                    {{-- Tampilkan deskripsi status saat ini secara default --}}
+                    <p class="m-0" id="desc-text">
+                        {{ $steps[$activity->status]['desc'] ?? 'Click on a step to see details.' }}
+                    </p>
                 </div>
             </div>
 
             {{-- Form Update Status --}}
-            <form action="{{ route('siswa.panitia-update-status', $activity->activity_code) }}" class="row g-2 mb-3 mt-3" method="post">
+            <form action="{{ route('siswa.panitia-update-status', $activity->activity_code) }}" class="row g-2 mb-3 mt-3" method="POST">
                 @csrf
+                
                 <select class="form-select col-md-3" name="status">
-                    <option value="preparation">Preparation</option>
-                    <option value="open_recruitment">Open Recruitment</option>
-                    <option value="interview">Interview</option>
-                    <option value="active">Active</option>
-                    <option value="grading_1">Start Grading</option>
-                    <option value="grading_2">Final Grading</option>
-                    <option value="finished">Finish</option>
+                    <option value="preparation" {{ $activity->status == 'preparation' ? 'selected' : '' }}>
+                        Preparation
+                    </option>
+                    <option value="open_recruitment" {{ $activity->status == 'open_recruitment' ? 'selected' : '' }}>
+                        Open Recruitment
+                    </option>
+                    <option value="interview" {{ $activity->status == 'interview' ? 'selected' : '' }}>
+                        Interview
+                    </option>
+                    <option value="active" {{ $activity->status == 'active' ? 'selected' : '' }}>
+                        Active
+                    </option>
+                    <option value="grading_1" {{ $activity->status == 'grading_1' ? 'selected' : '' }}>
+                        Start Grading
+                    </option>
+                    <option value="grading_2" {{ $activity->status == 'grading_2' ? 'selected' : '' }}>
+                        Final Grading
+                    </option>
+                    <option value="finished" {{ $activity->status == 'finished' ? 'selected' : '' }}>
+                        Finish
+                    </option>
                 </select>
+
                 <button class="btn btn-primary col-md-2" type="submit">Update Timeline</button>
             </form>
         </div>
@@ -168,31 +217,59 @@
         <div class="tab-pane fade" id="struktur">
             <div class="card shadow-sm p-4">
                 <h6 class="fw-bold text-success mt-4">🏗️ Atur Struktur BPH & Koordinator Divisi</h6>
-                <form>
-                    <table class="table table-bordered align-middle">
-                        <thead class="table-light text-center">
-                            <tr><th>Nama</th><th>Role</th><th>Divisi</th><th>Jabatan Baru</th></tr>
-                        </thead>
-                        <tbody>
-                            @foreach($panitiaList as $p)
+                
+                {{-- FORM START --}}
+                <form action="{{ route('siswa.panitia-update-struktur', $activity->activity_code) }}" method="POST">
+                    @csrf
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light text-center">
                                 <tr>
-                                    <td>{{ $p->student->full_name }}</td>
-                                    <td>{{ $p->role->role_name }}</td>
-                                    <td>{{ $p->subRole->sub_role_name_en ?? '-' }}</td>
-                                    <td>
-                                        <select class="form-select">
-                                            <option selected>- Pilih -</option>
-                                            <option>Ketua</option>
-                                            <option>Sekretaris</option>
-                                            <option>Anggota</option>
-                                        </select>
-                                    </td>
+                                    <th>Nama</th>
+                                    <th>Divisi</th>
+                                    <th>Jabatan Sekarang</th>
+                                    <th style="width: 30%">Ubah Jabatan</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                    <div class="text-end mt-3"><button class="btn btn-success">💾 Simpan</button></div>
+                            </thead>
+                            <tbody>
+                                @foreach($panitiaList as $p)
+                                    <tr>
+                                        <td>
+                                            <strong>{{ $p->student->full_name }}</strong>
+                                        </td>
+                                        <td class="text-center">
+                                            {{ $p->subRole->sub_role_name_en ?? '-' }}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info text-dark">{{ $p->role->role_name }}</span>
+                                        </td>
+                                        <td>
+                                            {{-- SELECT BOX --}}
+                                            {{-- Name array: updates[ID_STRUCTURE] = NEW_ROLE_ID --}}
+                                            <select class="form-select" name="updates[{{ $p->activity_structure_id }}]">
+                                                @foreach($roles as $r)
+                                                    <option value="{{ $r->student_role_id }}" 
+                                                        {{ $p->student_role_id == $r->student_role_id ? 'selected' : '' }}>
+                                                        {{ $r->role_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-success">
+                            💾 Simpan Perubahan Struktur
+                        </button>
+                    </div>
                 </form>
+                {{-- FORM END --}}
+                
             </div>
         </div>
 
@@ -200,10 +277,30 @@
         <div class="tab-pane fade" id="jadwal">
             <div class="card shadow-sm p-4">
                 <h6 class="fw-bold text-secondary mt-3">🕓 Tambah Jadwal Rapat</h6>
-                <form class="row g-2 mb-3">
-                    <div class="col-md-5"><input type="text" class="form-control" placeholder="Nama Kegiatan"></div>
-                    <div class="col-md-4"><input type="date" class="form-control"></div>
-                    <div class="col-md-3"><button class="btn btn-outline-primary w-100">Tambah</button></div>
+                
+                {{-- FORM UPDATE --}}
+                <form action="{{ route('siswa.jadwal-store', $activity->activity_code) }}" method="POST" class="row g-2 mb-3">
+                    @csrf
+                    
+                    {{-- 1. Judul Kegiatan --}}
+                    <div class="col-md-4">
+                        <input type="text" name="title" class="form-control" placeholder="Nama Kegiatan" required>
+                    </div>
+
+                    {{-- 2. Waktu (Gunakan datetime-local agar sesuai controller) --}}
+                    <div class="col-md-3">
+                        <input type="datetime-local" name="start_time" class="form-control" required>
+                    </div>
+
+                    {{-- 3. Lokasi (Wajib ditambahkan karena required di DB) --}}
+                    <div class="col-md-3">
+                        <input type="text" name="location" class="form-control" placeholder="Lokasi / Ruang" required>
+                    </div>
+
+                    {{-- 4. Tombol Submit --}}
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-outline-primary w-100">Tambah</button>
+                    </div>
                 </form>
             </div>
         </div>

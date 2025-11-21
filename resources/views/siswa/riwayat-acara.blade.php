@@ -5,74 +5,107 @@
 <h3 class="mb-3">Riwayat Keikutsertaan Acara</h3>
 <p class="text-muted">Lihat daftar acara yang pernah kamu ikuti beserta peran dan hasil evaluasi kinerjamu (KPI).</p>
 
-<!-- 🟢 RATA-RATA KPI -->
 <div class="card shadow-sm mb-4 border-0">
     <div class="card-body text-center">
         <h5 class="fw-bold text-primary mb-2">Rata-Rata Nilai KPI Keseluruhan</h5>
-        <div class="fs-3 text-warning">★ ★ ★ ☆</div>
-        <h6 class="mt-2 text-secondary">Rata-rata: <strong>3.0 / 4.0</strong> (Baik)</h6>
-        <small class="text-muted">Berdasarkan 3 acara yang pernah diikuti</small>
+        <div class="fs-3 text-warning">
+            @php $roundedOverall = round($overallKpi); @endphp
+            @for($i = 1; $i <= 4; $i++)
+                @if($i <= $roundedOverall) ★ @else ☆ @endif
+            @endfor
+        </div>
+        <h6 class="mt-2 text-secondary">Rata-rata: <strong>{{ $overallKpi }} / 4.0</strong> </h6>
+        <small class="text-muted">Berdasarkan {{ $totalEvent }} acara yang pernah diikuti</small>
     </div>
 </div>
 
-<!-- 📋 DAFTAR ACARA -->
 <div class="card shadow-sm">
     <div class="card-body">
         <table class="table table-bordered align-middle">
             <thead class="table-primary text-center">
                 <tr>
                     <th>Nama Acara</th>
-                    <th>Periode</th>
-                    <th>Divisi</th>
-                    <th>Jabatan</th>
-                    <th>Nilai KPI</th>
-             
+                    <th>Peran</th> {{-- Saya gabung Divisi & Jabatan biar hemat tempat --}}
+                    <th style="width: 15%;">Nilai KPI</th>
+                    <th style="width: 40%;">Catatan / Masukan</th> {{-- KOLOM BARU --}}
                 </tr>
             </thead>
             <tbody>
-                <!-- Contoh baris 1 -->
-                <tr>
-                    <td>Festival Kampus 2024</td>
-                    <td>Desember 2024</td>
-                    <td>Publikasi</td>
-                    <td>Koordinator Divisi</td>
-                    <td class="text-center">
-                        <span class="text-warning fs-5">★ ★ ★ ★</span><br>
-                        <small class="text-muted">Sangat Baik (4.0)</small>
-                    </td>
-                 
-                </tr>
+                @forelse($histories as $h)
+                    <tr>
+                        {{-- KOLOM 1: NAMA ACARA --}}
+                        <td>
+                            <strong>{{ $h->activity->activity_name }}</strong>
+                            <br>
+                            <span class="text-muted small">
+                                {{ \Carbon\Carbon::parse($h->activity->start_datetime)->translatedFormat('M Y') }}
+                            </span>
+                            <div class="mt-1">
+                                @if($h->activity->status == 'finished')
+                                    <span class="badge bg-success" style="font-size: 0.65em">Selesai</span>
+                                @elseif($h->activity->status == 'active')
+                                    <span class="badge bg-primary" style="font-size: 0.65em">Aktif</span>
+                                @else
+                                    <span class="badge bg-secondary" style="font-size: 0.65em">{{ $h->activity->status }}</span>
+                                @endif
+                            </div>
+                        </td>
+                        
+                        {{-- KOLOM 2: PERAN --}}
+                        <td>
+                            <div class="fw-bold">{{ $h->role->role_name }}</div>
+                            <div class="text-muted small">{{ $h->subRole->sub_role_name_en ?? '-' }}</div>
+                        </td>
+                        
+                        {{-- KOLOM 3: NILAI --}}
+                        <td class="text-center">
+                            @if($h->kpi_score > 0)
+                                <span class="text-warning fs-5">
+                                    @php $roundedScore = round($h->kpi_score); @endphp
+                                    @for($i = 1; $i <= 4; $i++)
+                                        {{ $i <= $roundedScore ? '★' : '☆' }}
+                                    @endfor
+                                </span>
+                                <br>
+                                <strong class="text-dark">{{ $h->kpi_score }}</strong>
+                            @else
+                                <span class="text-muted small fst-italic">Belum Dinilai</span>
+                            @endif
+                        </td>
 
-                <!-- Contoh baris 2 -->
-                <tr>
-                    <td>Seminar Nasional 2023</td>
-                    <td>November 2023</td>
-                    <td>Acara</td>
-                    <td>Anggota</td>
-                    <td class="text-center">
-                        <span class="text-warning fs-5">★ ★ ★ ☆</span><br>
-                        <small class="text-muted">Baik (3.0)</small>
-                    </td>
-                
-                </tr>
+                        {{-- KOLOM 4: ALASAN / REVIEW --}}
+                        <td class="text-start bg-light">
+                            @if($h->final_review)
+                                <div class="small text-secondary" style="font-style: italic;">
+                                    
+                                    {{-- 1. Pecah text berdasarkan Enter (\n) --}}
+                                    @php $reasons = explode("\n", $h->final_review); @endphp
 
-                <!-- Contoh baris 3 -->
-                <tr>
-                    <td>Webinar Creative Week</td>
-                    <td>Oktober 2022</td>
-                    <td>Perlengkapan</td>
-                    <td>Anggota</td>
-                    <td class="text-center">
-                        <span class="text-warning fs-5">★ ★ ☆ ☆</span><br>
-                        <small class="text-muted">Cukup (2.0)</small>
-                    </td>
-             
-                </tr>
+                                    {{-- 2. Loop setiap alasan --}}
+                                    @foreach($reasons as $reason)
+                                        {{-- Cek agar baris kosong tidak ikut dicetak --}}
+                                        @if(trim($reason) !== "")
+                                            "{{ $reason }}" <br><br>
+                                        @endif
+                                    @endforeach
+
+                                </div>
+                            @else
+                                <span class="text-muted small">- Tidak ada catatan -</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            <i class="bi bi-calendar-x display-6 d-block mb-2"></i>
+                            Belum ada riwayat kepanitiaan.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
 </div>
-
-
 
 @endsection

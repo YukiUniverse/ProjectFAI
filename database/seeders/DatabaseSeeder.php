@@ -373,6 +373,7 @@ class DatabaseSeeder extends Seeder
             'start_time' => '2024-10-09 10:00:00',
             'end_time' => '2024-10-09 12:00:00',
             'location' => 'Zoom Meeting',
+            'status' => 'completed', // <--- Tambahan status
             'created_at' => now(),
         ]);
 

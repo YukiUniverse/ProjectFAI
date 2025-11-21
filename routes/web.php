@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PanitiaController;
+use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,8 +33,16 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     ->name('siswa.panitia-save-grading');
     Route::post('/panitia/update-status/{activityCode}', [PanitiaController::class, 'updateStatus'])
     ->name('siswa.panitia-update-status');
-    
-
+    Route::post('/panitia/update-struktur/{activityCode}', [PanitiaController::class, 'updateStructure'])
+    ->name('siswa.panitia-update-struktur');
+    // Simpan Jadwal (Perlu activityCode untuk tahu ini jadwal acara apa)
+    Route::post('/panitia/store-schedule/{activityCode}', [ScheduleController::class, 'store'])->name('siswa.jadwal-store');
+    // Halaman Edit
+    Route::get('/panitia/edit-schedule/{id}', [ScheduleController::class, 'edit'])->name('siswa.jadwal-edit');
+    // Update Data
+    Route::put('/panitia/update-schedule/{id}', [ScheduleController::class, 'update'])->name('siswa.jadwal-update');
+    // Hapus Data
+    Route::delete('/panitia/delete-schedule/{id}', [ScheduleController::class, 'destroy'])->name('siswa.jadwal-delete');
     // Riwayat umum
     Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
 });

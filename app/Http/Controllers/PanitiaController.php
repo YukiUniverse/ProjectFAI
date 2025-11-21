@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityStructure;
+use App\Models\ActivitySchedule;
 use App\Models\RecruitmentRegistration;
 use App\Models\StudentActivity;
 use App\Models\StudentRole;
+use App\Models\StudentOrganization;
 use App\Models\SubRole;
 use App\Models\StudentRating;
 use Illuminate\Http\Request;
@@ -52,9 +54,14 @@ class PanitiaController extends Controller
         return view('siswa.status-proposal');
     }
 
+
+
     public function proposalAjukan()
     {
-        return view('siswa.proposal-ajukan');
+        // Ambil semua data organisasi
+        $organizations = StudentOrganization::all();
+
+        return view('siswa.proposal-ajukan', compact('organizations'));
     }
 
     // Panitia (umum)
@@ -81,40 +88,10 @@ class PanitiaController extends Controller
         ->where('rater_student_id', $studentId)
         ->get()
         ->keyBy('rated_student_id');
-        $dataJadwal = [
-            (object) [
-                'tanggal' => '10 Des 2025',
-                'kegiatan' => 'Rapat Persiapan',
-                'ruangan' => 'Ruang B101',
-                'status' => 'Dijadwalkan', // Anda bisa menggunakan kode HTML badge di sini jika perlu
-            ],
-            (object) [
-                'tanggal' => '12 Des 2025',
-                'kegiatan' => 'Koordinasi Divisi Publikasi',
-                'ruangan' => 'Online (Zoom)',
-                'status' => 'Selesai',
-            ],
-            (object) [
-                'tanggal' => '15 Des 2025',
-                'kegiatan' => 'Cek Perlengkapan',
-                'ruangan' => 'Gudang Utama',
-                'status' => 'Selesai',
-            ],
-            (object) [
-                'tanggal' => '18 Des 2025',
-                'kegiatan' => 'Briefing Panitia Inti',
-                'ruangan' => 'Ruang Rapat A',
-                'status' => 'Dijadwalkan',
-            ],
-            (object) [
-                'tanggal' => '20 Des 2025',
-                'kegiatan' => 'Simulasi Acara',
-                'ruangan' => 'Aula Serbaguna',
-                'status' => 'Belum Mulai',
-            ]
-        ];
-
-        $jadwal = collect($dataJadwal);
+        
+        $jadwal = ActivitySchedule::where('student_activity_id', $activity->student_activity_id)
+                    ->orderBy('start_time', 'asc')
+                    ->get();
         $panitia = collect($dataPanitia);
         return view('siswa.panitia-detail', compact('activity', 'panitia', 'jadwal', 'existingRatings'));
     }
@@ -142,6 +119,7 @@ class PanitiaController extends Controller
             ->get()
             ->groupBy('rated_student_id'); // Kelompokkan per mahasiswa yang dinilai
         $listDivisi = SubRole::all();
+        $roles = StudentRole::all();
         $studentActivityId = $activity->student_activity_id;
         $listPertanyaanUntukDivisi = SubRole::with([
             'activityQuestions' => function ($query) use ($studentActivityId) {
@@ -149,9 +127,36 @@ class PanitiaController extends Controller
                 $query->where('student_activity_id', $studentActivityId);
             }
         ])->get();
-        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings'));
+        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles'));
     }
 
+    public function updateStructure(Request $request, $activityCode)
+    {
+        // Validasi
+        $request->validate([
+            'updates' => 'required|array',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Loop setiap data yang dikirim dari form
+            foreach ($request->updates as $structureId => $newRoleId) {
+                
+                // Update student_role_id di tabel activity_structures
+                ActivityStructure::where('activity_structure_id', $structureId)
+                    ->update([
+                        'student_role_id' => $newRoleId
+                    ]);
+            }
+
+            DB::commit();
+            return back()->with('success', 'Struktur kepanitiaan berhasil diperbarui!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memperbarui struktur: ' . $e->getMessage());
+        }
+    }
 
     public function updateStatus(Request $request, $activityCode)
     {
@@ -286,10 +291,36 @@ class PanitiaController extends Controller
         return view('siswa.panitia-task');
     }
 
-    // Riwayat umum
     public function riwayatAcara()
     {
-        return view('siswa.riwayat-acara');
+        // 1. Ambil ID Siswa Login
+        $studentId = Auth::user()->student->student_id;
+
+        // 2. Ambil Riwayat Kepanitiaan (HANYA YANG FINISHED)
+        $histories = ActivityStructure::with(['activity', 'role', 'subRole'])
+            ->where('student_id', $studentId)
+            ->whereHas('activity', function($q) {
+                // vvv TAMBAHKAN FILTER INI vvv
+                $q->where('status', 'finished') 
+                ->orderBy('start_datetime', 'desc');
+            })
+            ->get();
+
+        // 3. Hitung Nilai KPI (Rata-rata Bintang) per Acara
+        foreach ($histories as $h) {
+            $avgStars = StudentRating::where('student_activity_id', $h->student_activity_id)
+                ->where('rated_student_id', $studentId)
+                ->avg('stars');
+
+            $h->kpi_score = $avgStars ? number_format($avgStars, 1) : 0;
+        }
+
+        // 4. Hitung Statistik Keseluruhan
+        $scoredActivities = $histories->where('kpi_score', '>', 0);
+        $overallKpi = $scoredActivities->count() > 0 ? number_format($scoredActivities->avg('kpi_score'), 1) : '0.0';
+        $totalEvent = $histories->count();
+
+        return view('siswa.riwayat-acara', compact('histories', 'overallKpi', 'totalEvent'));
     }
 
     public function saveEvaluasi(Request $request, $activityCode) 

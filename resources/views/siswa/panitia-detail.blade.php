@@ -72,53 +72,80 @@
         <div class="tab-pane fade show active" id="jadwal">
             <div class="card shadow-sm p-4">
                 <h5 class="fw-bold text-primary mb-3">📅 Jadwal & Kegiatan</h5>
-                <table class="table table-bordered align-middle">
-                    <thead class="table-success text-center">
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Agenda</th>
-                            <th>Tempat</th>
-                            <th>Status</th>
-                            <th>Aksi</th> <!-- Tambahan kolom Action -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($jadwal as $j)
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-success text-center">
                             <tr>
-                                <td>{{ $j->tanggal }}</td>
-                                <td>{{ $j->kegiatan }}</td>
-                                <td>{{ $j->ruangan }}</td>
-                                <td>
-                                    <span class="badge bg-info text-dark">{{ $j->status }}</span>
-                                </td>
-                                <td class="text-center">
-                                    <!-- Tombol Edit -->
-                                    <a href="" class="btn btn-sm btn-warning">
-                                        <i class="bi bi-pencil-square"></i> Edit
-                                    </a>
-
-                                    <!-- Tombol Delete -->
-                                    <form action="" method="POST" style="display:inline-block;"
-                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="bi bi-trash"></i> Hapus
-                                        </button>
-                                    </form>
-                                </td>
+                                <th>Tanggal & Waktu</th>
+                                <th>Agenda</th>
+                                <th>Tempat</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse ($jadwal as $j)
+                                <tr>
+                                    <td class="text-center">
+                                        {{-- Format Tanggal menggunakan Carbon --}}
+                                        {{ \Carbon\Carbon::parse($j->start_time)->format('d M Y') }} <br>
+                                        <small class="text-muted">{{ \Carbon\Carbon::parse($j->start_time)->format('H:i') }} WIB</small>
+                                    </td>
+                                    <td>{{ $j->title }}</td>
+                                    <td>{{ $j->location }}</td>
+                                    <td class="text-center">
+                                        @if(strtolower($j->status) == 'completed')
+                                            <span class="badge bg-success">Selesai</span>
+                                        @else
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        <!-- Tombol Edit -->
+                                        <a href="{{ route('siswa.jadwal-edit', $j->id) }}" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
 
+                                        <!-- Tombol Delete -->
+                                        <form action="{{ route('siswa.jadwal-delete', $j->id) }}" method="POST" style="display:inline-block;"
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="bi bi-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted fst-italic py-3">
+                                        Belum ada jadwal kegiatan. Silakan tambah jadwal baru.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
                 <h6 class="fw-bold text-secondary mt-3">➕ Tambah Jadwal Baru</h6>
-                <form class="row g-2">
-                    <div class="col-md-4"><input type="text" class="form-control" placeholder="Nama Kegiatan"></div>
-                    <div class="col-md-3"><input type="date" class="form-control"></div>
-                    <div class="col-md-3"><input type="text" class="form-control" placeholder="Lokasi"></div>
-                    <div class="col-md-2"><button class="btn btn-success w-100">Tambah</button></div>
+                {{-- FORM TAMBAH --}}
+                <form action="{{ route('siswa.jadwal-store', $activity->activity_code) }}" method="POST" class="row g-2">
+                    @csrf
+                    <div class="col-md-4">
+                        <input type="text" name="title" class="form-control" placeholder="Nama Kegiatan / Agenda" required>
+                    </div>
+                    <div class="col-md-3">
+                        {{-- Gunakan datetime-local agar sesuai dengan field database --}}
+                        <input type="datetime-local" name="start_time" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="location" class="form-control" placeholder="Lokasi / Ruangan" required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success w-100">Tambah</button>
+                    </div>
                 </form>
             </div>
         </div>
