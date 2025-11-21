@@ -131,19 +131,6 @@ class PanitiaController extends Controller
             ->get();
         $activity = StudentActivity::where('activity_code', $activityCode)->first();
         $listJabatan = StudentRole::all();
-        $listDivisi = SubRole::all();
-        $studentActivityId = $activity->student_activity_id;
-        $listPertanyaanUntukDivisi = SubRole::with([
-            'activityQuestions' => function ($query) use ($studentActivityId) {
-                // This logic only affects the questions attached, not the SubRole itself
-                $query->where('student_activity_id', $studentActivityId);
-            }
-        ])->get();
-        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi'));
-    public function panitiaPengurus(Request $request, $activityCode)
-    {
-        $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
-
         // 1. Ambil Daftar Semua Panitia di acara ini
         $panitiaList = ActivityStructure::with(['student', 'role', 'subRole'])
             ->where('student_activity_id', $activity->student_activity_id)
@@ -154,8 +141,99 @@ class PanitiaController extends Controller
             ->where('student_activity_id', $activity->student_activity_id)
             ->get()
             ->groupBy('rated_student_id'); // Kelompokkan per mahasiswa yang dinilai
+        $listDivisi = SubRole::all();
+        $studentActivityId = $activity->student_activity_id;
+        $listPertanyaanUntukDivisi = SubRole::with([
+            'activityQuestions' => function ($query) use ($studentActivityId) {
+                // This logic only affects the questions attached, not the SubRole itself
+                $query->where('student_activity_id', $studentActivityId);
+            }
+        ])->get();
+        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings'));
+    }
 
-        return view('siswa.pengurus-inti', compact('activity', 'panitiaList', 'allRatings'));
+
+    public function updateStatus(Request $request, $activityCode)
+    {
+        // 1. Validasi Input
+        $request->validate([
+            'status' => 'required|in:preparation,open_recruitment,interview,active,grading_1,grading_2,finished',
+        ]);
+
+        // 2. Ambil Data Activity
+        $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
+
+        // 3. LOGIKA KHUSUS: Jika status yang dipilih adalah 'grading_2'
+        // Maka jalankan Auto-Fill Rating sebelum update status
+        if ($request->status === 'grading_2') {
+            
+            DB::beginTransaction();
+            try {
+                // Ambil semua ID mahasiswa yang jadi panitia di acara ini
+                $memberIds = ActivityStructure::where('student_activity_id', $activity->student_activity_id)
+                    ->pluck('student_id');
+
+                // Looping Ganda: Setiap anggota harus menilai setiap anggota lain
+                foreach ($memberIds as $raterId) {       // Si Penilai
+                    foreach ($memberIds as $ratedId) {   // Yang Dinilai
+
+                        // Skip jika orang yang sama (tidak menilai diri sendiri)
+                        if ($raterId == $ratedId) continue;
+
+                        // Cek & Isi Otomatis
+                        // firstOrCreate: Cek database, jika belum ada rating, buat baru.
+                        // Jika sudah ada (misal si A sudah menilai si B), biarkan saja (tidak ditimpa).
+                        StudentRating::firstOrCreate(
+                            [
+                                // KUNCI PENCARIAN (Syarat Unik)
+                                'student_activity_id' => $activity->student_activity_id,
+                                'rater_student_id'    => $raterId,
+                                'rated_student_id'    => $ratedId,
+                            ],
+                            [
+                                // DATA DEFAULT (Hanya dipakai jika data baru dibuat)
+                                'stars'  => 4,
+                                'reason' => 'No Comment',
+                            ]
+                        );
+                    }
+                }
+                
+                DB::commit();
+                // Lanjut ke proses update status di bawah...
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return back()->with('error', 'Gagal melakukan auto-fill rating: ' . $e->getMessage());
+            }
+        }
+
+        // 4. Update Status ke Database
+        $activity->update([
+            'status' => $request->status
+        ]);
+
+        $statusLabels = [
+            'preparation'      => 'Preparation',
+            'open_recruitment' => 'Open Recruitment',
+            'interview'        => 'Interview',
+            'active'           => 'Active',
+            'grading_1'        => 'Start Grading',   // <--- Sesuai Request
+            'grading_2'        => 'Final Grading',   // <--- Sesuai Request
+            'finished'         => 'Finished',
+        ];
+
+        // Ambil label berdasarkan status yg dipilih (default ke teks asli jika tidak ada di list)
+        $statusName = $statusLabels[$request->status] ?? ucfirst($request->status);
+
+        $message = 'Status timeline berhasil diperbarui menjadi: ' . $statusName;
+        
+        // Tambahan pesan jika masuk ke Final Grading
+        if ($request->status === 'grading_2') {
+            $message .= '. Sistem otomatis mengisi rating kosong dengan nilai default.';
+        }
+
+        return back()->with('success', $message);
     }
 
     public function saveGrading(Request $request, $activityCode)

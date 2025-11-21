@@ -30,6 +30,8 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::post('/panitia/saveEvaluasi/{activityCode}', [PanitiaController::class, 'saveEvaluasi'])->name('siswa.panitia-save-evaluasi');
     Route::post('/panitia/simpan-grading/{activityCode}', [PanitiaController::class, 'saveGrading'])
     ->name('siswa.panitia-save-grading');
+    Route::post('/panitia/update-status/{activityCode}', [PanitiaController::class, 'updateStatus'])
+    ->name('siswa.panitia-update-status');
     
 
     // Riwayat umum
