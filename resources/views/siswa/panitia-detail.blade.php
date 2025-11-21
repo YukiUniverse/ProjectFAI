@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Detail Acara Panitia')
 @section('content')
+    
     <div style="display: flex; justify-content: space-between;">
         <h3 class="mb-3">Detail Informasi Acara</h3>
         <a href="{{ route('siswa.panitia-pengurus', $activity->activity_code) }}" class="btn btn-primary">Mode BPH</a>
@@ -32,6 +33,38 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#evaluasi">⭐ Evaluasi</button>
         </li>
     </ul>
+
+    
+    {{-- 1. Pesan Sukses --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    {{-- 2. Pesan Error (Jaga-jaga ada error database) --}}
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    {{-- 3. Pesan Validasi (Jika ada form yang kosong/salah) --}}
+    @if ($errors->any())
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Perhatikan:</strong>
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    
+
 
     <div class="tab-content">
 
@@ -123,39 +156,67 @@
             <div class="card shadow-sm p-4">
                 <h5 class="fw-bold text-primary mb-3">⭐ Evaluasi Kinerja Semua Panitia</h5>
                 <p class="text-muted mb-3">Berikan rating (1–4 bintang) dan alasan kontribusi setiap panitia.</p>
-
-                <form>
+                <form action="{{ route('siswa.panitia-save-evaluasi', $activity->activity_code) }}" method="POST">
+                    @csrf
                     <table class="table table-bordered align-middle">
                         <thead class="table-light text-center">
                             <tr>
                                 <th>Nama Panitia</th>
-                                <th>Divisi</th>
-                                <th>Rating</th>
+                                <th>Divisi</th> 
+                                <th>Sub Divisi</th> 
+                                <th style="width: 200px;">Rating</th>
                                 <th>Alasan</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($panitia as $p)
-                                <tr>
-                                    <td>{{ $p->student->full_name}}</td>
+                                {{-- Cek agar tidak menilai diri sendiri --}}
+                                @if($p->student->student_id !== Auth::user()->student->student_id)
+                                
+                                {{-- AMBIL DATA RATING SEBELUMNYA (Jika Ada) --}}
+                                @php
+                                    // Mengambil object rating dari collection berdasarkan ID teman
+                                    $rating = $existingRatings->get($p->student->student_id);
+                                @endphp
+
+                                <tr style="--bs-table-bg-opacity: .1;">
+                                    <td>
+                                        {{ $p->student->full_name }}
+                                        {{-- @if($rating)
+                                            <br><span class="badge bg-success" style="font-size: 0.7em">Sudah Dinilai</span>
+                                        @endif --}}
+                                    </td>
                                     <td>{{ $p->role->role_name }}</td>
-                                    <td>{{ $p->subRole->sub_role_name_en }}</td>
+                                    <td>{{ $p->subRole->sub_role_name_en ?? '-' }}</td>
+                                    
                                     <td class="text-center">
-                                        <select class="form-select w-auto mx-auto">
-                                            <option>★ ☆ ☆ ☆ (1)</option>
-                                            <option>★ ★ ☆ ☆ (2)</option>
-                                            <option>★ ★ ★ ☆ (3)</option>
-                                            <option selected>★ ★ ★ ★ (4)</option>
+                                        <select name="evaluations[{{ $p->student->student_id }}][stars]" class="form-select w-auto mx-auto" required>
+                                            <option value="" disabled {{ $rating ? '' : 'selected' }}>Pilih Rating</option>
+                                            {{-- Cek apakah $rating->stars == nilai opsi. Gunakan ?-> agar tidak error jika null --}}
+                                            <option value="1" {{ $rating?->stars == 1 ? 'selected' : '' }}>★ (1 - Buruk)</option>
+                                            <option value="2" {{ $rating?->stars == 2 ? 'selected' : '' }}>★★ (2 - Cukup)</option>
+                                            <option value="3" {{ $rating?->stars == 3 ? 'selected' : '' }}>★★★ (3 - Baik)</option>
+                                            <option value="4" {{ $rating?->stars == 4 ? 'selected' : '' }}>★★★★ (4 - Sangat Baik)</option>
                                         </select>
                                     </td>
-                                    <td><input type="text" class="form-control" placeholder="Masukkan alasan singkat"></td>
+                                    
+                                    <td>
+                                        <input type="text" 
+                                            name="evaluations[{{ $p->student->student_id }}][reason]" 
+                                            class="form-control" 
+                                            placeholder="Alasan / Kritik / Saran" 
+                                            {{-- Isi value dengan data database jika ada --}}
+                                            value="{{ $rating?->reason }}"
+                                            required>
+                                    </td>
                                 </tr>
+                                @endif
                             @endforeach
                         </tbody>
                     </table>
 
                     <div class="text-end mt-3">
-                        <button class="btn btn-success">💾 Simpan Semua Evaluasi</button>
+                        <button type="submit" class="btn btn-primary">💾 Simpan / Perbarui Evaluasi</button>
                     </div>
                 </form>
             </div>

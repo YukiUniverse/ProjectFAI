@@ -27,6 +27,10 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::get('/panitia/pengurus/{activityCode}', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus');
     Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal');
     Route::get('/panitia/task/', [PanitiaController::class, 'panitiaTask'])->name('siswa.panitia-task');
+    Route::post('/panitia/saveEvaluasi/{activityCode}', [PanitiaController::class, 'saveEvaluasi'])->name('siswa.panitia-save-evaluasi');
+    Route::post('/panitia/simpan-grading/{activityCode}', [PanitiaController::class, 'saveGrading'])
+    ->name('siswa.panitia-save-grading');
+    
 
     // Riwayat umum
     Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
