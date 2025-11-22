@@ -25,6 +25,11 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 
     Route::get('/panitia/dashboard/', [PanitiaController::class, 'panitiaDashboard'])->name('siswa.panitia-dashboard');
     Route::get('/panitia/pendaftar/{activityCode}', [PanitiaController::class, 'panitiaPendaftar'])->name('siswa.panitia-pendaftar');
+    Route::get('/panitia/pendaftar/{activityCode}/detail/{registrationID}', [PanitiaController::class, 'detailPendaftar'])->name('siswa.detail-pendaftar');
+    // Route to show the interview page
+    Route::get('/panitia/pendaftar/{activityCode}/detail/{registrationId}/interview', [PanitiaController::class, 'showInterview'])->name('siswa.showInterview');
+    // Route to save the answers
+    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationId}/interview', [PanitiaController::class, 'storeInterview'])->name('siswa.storeInterview');
 
     Route::get('/panitia/detail/{activityCode}', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail');
     Route::get('/panitia/chat/', [PanitiaController::class, 'panitiaChat'])->name('siswa.panitia-chat');
