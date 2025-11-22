@@ -22,19 +22,23 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::get('/proposal-ajukan', [PanitiaController::class, 'proposalAjukan'])->name('siswa.proposal-ajukan');
 
     // Panitia (umum)
+
     Route::get('/panitia/dashboard/', [PanitiaController::class, 'panitiaDashboard'])->name('siswa.panitia-dashboard');
+    Route::get('/panitia/pendaftar/{activityCode}', [PanitiaController::class, 'panitiaPendaftar'])->name('siswa.panitia-pendaftar');
+
     Route::get('/panitia/detail/{activityCode}', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail');
     Route::get('/panitia/chat/', [PanitiaController::class, 'panitiaChat'])->name('siswa.panitia-chat');
     Route::get('/panitia/pengurus/{activityCode}', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus');
+    Route::post('/panitia/pengurus/pertanyaan/{activityCode}', [PanitiaController::class, 'tambahPertanyaan'])->name('siswa.tambah-pertanyaan');
     Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal');
-    Route::get('/panitia/task/', [PanitiaController::class, 'panitiaTask'])->name('siswa.panitia-task');
+
     Route::post('/panitia/saveEvaluasi/{activityCode}', [PanitiaController::class, 'saveEvaluasi'])->name('siswa.panitia-save-evaluasi');
     Route::post('/panitia/simpan-grading/{activityCode}', [PanitiaController::class, 'saveGrading'])
-    ->name('siswa.panitia-save-grading');
+        ->name('siswa.panitia-save-grading');
     Route::post('/panitia/update-status/{activityCode}', [PanitiaController::class, 'updateStatus'])
-    ->name('siswa.panitia-update-status');
+        ->name('siswa.panitia-update-status');
     Route::post('/panitia/update-struktur/{activityCode}', [PanitiaController::class, 'updateStructure'])
-    ->name('siswa.panitia-update-struktur');
+        ->name('siswa.panitia-update-struktur');
     // Simpan Jadwal (Perlu activityCode untuk tahu ini jadwal acara apa)
     Route::post('/panitia/store-schedule/{activityCode}', [ScheduleController::class, 'store'])->name('siswa.jadwal-store');
     // Halaman Edit

@@ -154,7 +154,7 @@
 
         {{-- TAB 2: PERTANYAAN --}}
         <div class="tab-pane fade" id="pertanyaan">
-            @forelse ($listPertanyaanUntukDivisi ?? [] as $d)
+            @forelse ($listPertanyaanUntukDivisi as $d)
                 <div class="card shadow-sm p-4 mb-3">
                     <h6 class="fw-bold text-secondary mt-3">Pertanyaan untuk divisi {{ $d->sub_role_name }}</h6>
                     <ol>
@@ -164,8 +164,10 @@
                             <li class="text-muted">Belum ada pertanyaan.</li>
                         @endforelse
                     </ol>
-                    <form class="row g-2 mb-3" method="post" action="">
+                    <form class="row g-2 mb-3" method="post" action="{{ route('siswa.tambah-pertanyaan', $activity->activity_code) }}">
                         @csrf
+                        <input type="text" name="sub_role_id" id="" value="{{ $d->sub_role_id }}" hidden>
+                        <input type="text" name="student_activity_id" id="" value="{{ $activity->student_activity_id }}" hidden>
                         <div class="col-md-5">
                             <input type="text" name="question" class="form-control" placeholder="Tambah Pertanyaan">
                         </div>
@@ -188,25 +190,18 @@
                 <table class="table table-bordered align-middle">
                     <thead class="table-light text-center">
                         <tr>
-                            <th>Nama</th> <th>Divisi</th> <th>CV</th> <th>Status</th> <th>Aksi</th>
+                            <th>Nama</th> <th>Divisi</th> <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{-- Contoh Data Statis (Sesuai kode Anda sebelumnya) --}}
                         <tr>
                             <td>Yulia Pratiwi</td> <td>Publikasi</td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-outline-primary">📄 Lihat</a></td>
                             <td><span class="badge bg-warning text-dark">Menunggu</span></td>
-                            <td class="text-center">
-                                <button class="btn btn-success btn-sm">Terima</button>
-                                <button class="btn btn-danger btn-sm">Tolak</button>
-                            </td>
                         </tr>
                         <tr>
                             <td>Dani Setiawan</td> <td>Perlengkapan</td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-outline-primary">📄 Lihat</a></td>
                             <td><span class="badge bg-success">Diterima</span></td>
-                            <td class="text-center"><button class="btn btn-secondary btn-sm" disabled>Sudah Diproses</button></td>
                         </tr>
                     </tbody>
                 </table>
