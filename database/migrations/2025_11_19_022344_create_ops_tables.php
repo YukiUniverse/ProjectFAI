@@ -16,7 +16,6 @@ return new class extends Migration {
             $table->unsignedInteger('student_activity_id');
             $table->string('title');
             $table->dateTime('start_time');
-            $table->dateTime('end_time')->nullable();
             $table->string('location');
             $table->enum('status', ['pending', 'completed'])->default('pending');
             $table->text('description')->nullable();

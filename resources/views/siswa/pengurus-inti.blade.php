@@ -371,7 +371,8 @@
                                             </table>
                                         @else
                                             <div class="text-center py-2">
-                                                <textarea name="grading[{{ $structId }}][manual_review]" class="form-control" placeholder="Belum ada review. Tulis review manual..."></textarea>
+                                                {{-- <textarea name="grading[{{ $structId }}][manual_review]" class="form-control" placeholder="Belum ada review. Tulis review manual..."></textarea> --}}
+                                                Belum ada Review.
                                             </div>
                                         @endif
                                     </div>

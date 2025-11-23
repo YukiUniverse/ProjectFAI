@@ -335,10 +335,10 @@ class PanitiaController extends Controller
                 // 1. Ambil array alasan dari checkbox
                 $selectedReasons = $data['reasons'] ?? [];
 
-                // Jika ada review manual, tambahkan ke array
-                if (!empty($data['manual_review'])) {
-                    $selectedReasons[] = $data['manual_review'];
-                }
+                // // Jika ada review manual, tambahkan ke array
+                // if (!empty($data['manual_review'])) {
+                //     $selectedReasons[] = $data['manual_review'];
+                // }
 
                 // 2. Gabungkan menjadi satu string dengan ENTER (\n) sebagai pemisah
                 // Ini akan membuat setiap alasan berada di baris baru

@@ -17,7 +17,6 @@ class ActivitySchedule extends Model
         'student_activity_id',
         'title',
         'start_time',
-        'end_time', // Opsional, bisa null
         'location',
         'description',
         'status' // Tambahan agar kolom status di UI bisa disimpan
