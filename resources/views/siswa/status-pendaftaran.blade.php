@@ -22,9 +22,12 @@
                             <td>{{$d->activityDetail->activity_name}}</td>
                             <td>
                                 @if($d->status == "accepted")
-                                    Divisi Akhir
+                                    {{ $d->firstChoice->sub_role_name }}
                                 @else
-                                    Divisi yang Kupilih
+                                    {{ $d->firstChoice->sub_role_name }}
+                                    @if($d->secondChoice)
+                                        & {{ $d->secondChoice->sub_role_name }}
+                                    @endif
                                 @endif
                             </td>
                             <td><span
@@ -38,11 +41,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <div class="text-end">
-        <a href="{{ route('siswa.daftar-acara') }}" class="btn btn-outline-primary">📅 Lihat Daftar Acara</a>
-        <a href="{{ route('siswa.status-proposal') }}" class="btn btn-primary">➡️ Lihat Status Proposal</a>
     </div>
 
 @endsection

@@ -190,19 +190,20 @@
                 <table class="table table-bordered align-middle">
                     <thead class="table-light text-center">
                         <tr>
-                            <th>Nama</th> <th>Divisi</th> <th>Status</th>
+                            <th>Nama</th> <th>Divisi 1</th> <th>Divisi 2</th> <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- Contoh Data Statis (Sesuai kode Anda sebelumnya) --}}
+                        @forelse($listPendaftar as $p)
                         <tr>
-                            <td>Yulia Pratiwi</td> <td>Publikasi</td>
-                            <td><span class="badge bg-warning text-dark">Menunggu</span></td>
+                            <td>{{$p->student->full_name}}</td> 
+                            <td>{{$p->firstChoice->sub_role_name}}</td>
+                            <td>{{$p->secondChoice?->sub_role_name}}</td>
+                            <td><span class="badge bg-{{ $p->status == "accepted"?"success":($p->status == "rejected"?"danger":"warning") }} text-dark">{{ $p->status }}</span></td>
                         </tr>
-                        <tr>
-                            <td>Dani Setiawan</td> <td>Perlengkapan</td>
-                            <td><span class="badge bg-success">Diterima</span></td>
-                        </tr>
+                        @empty
+                        Belum ada pendaftar
+                        @endforelse
                     </tbody>
                 </table>
             </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityStructure;
 use App\Models\ActivitySchedule;
 use App\Models\RecruitmentAnswer;
+use App\Models\RecruitmentDecision;
 use App\Models\RecruitmentQuestion;
 use App\Models\RecruitmentRegistration;
 use App\Models\StudentActivity;
@@ -32,22 +33,43 @@ class PanitiaController extends Controller
     {
         $studentId = Auth::user()->student->student_id;
 
-        $acara = StudentActivity::with('members') // Optional: Eager load members if you need to display them
+        $acara = StudentActivity::with('members', 'registrations') // Optional: Eager load members if you need to display them
             ->whereDoesntHave('members', function ($query) use ($studentId) {
                 $query->where('activity_structures.student_id', $studentId);
             })
+            ->whereDoesntHave('registrations', function ($query) use ($studentId) {
+                $query
+                    ->where('recruitment_registrations.student_id', $studentId);
+            })
+            ->where('status', 'open_recruitment')
             ->get();
         return view('siswa.daftar-acara', compact('acara'));
     }
 
-    public function formPendaftaran()
+    public function formPendaftaran($studentActivityId)
     {
-        return view('siswa.form-pendaftaran');
+        $activity = StudentActivity::findOrFail($studentActivityId);
+        $divisi = SubRole::whereNot('sub_role_name', 'BPH')->get();
+        return view('siswa.form-pendaftaran', compact('activity', 'divisi'));
+    }
+    public function daftarKepanitiaan(Request $request, $studentActivityId)
+    {
+        $validated = $request->validate([
+            "choice_1_sub_role_id" => 'required|exists:sub_roles,sub_role_id',
+            "reason_1" => "required|string",
+            "choice_2_sub_role_id" => 'nullable|integer',
+            "reason_2" => 'nullable|string',
+        ]);
+        $validated["status"] = "pending";
+        $validated["student_activity_id"] = $studentActivityId;
+        $validated["student_id"] = Auth::user()->student->student_id;
+        RecruitmentRegistration::firstOrCreate($validated);
+        return redirect()->route('siswa.status-pendaftaran')->with("success", "Berhasil daftar!");
     }
 
     public function statusPendaftaran()
     {
-        $data = RecruitmentRegistration::with('activityDetail')->where('student_id', Auth::user()->student->student_id)->get();
+        $data = RecruitmentRegistration::with('activityDetail', 'firstChoice', 'secondChoice')->where('student_id', Auth::user()->student->student_id)->get();
         return view('siswa.status-pendaftaran', compact('data'));
     }
 
@@ -55,8 +77,6 @@ class PanitiaController extends Controller
     {
         return view('siswa.status-proposal');
     }
-
-
 
     public function proposalAjukan()
     {
@@ -73,7 +93,8 @@ class PanitiaController extends Controller
         $acara = StudentActivity::with('members')->whereHas('members', function ($query) use ($studentId) {
             $query->where('activity_structures.student_id', $studentId);
         })
-            ->get();
+            ->
+            where('status', '!=', 'finished')->get();
         return view('siswa.panitia-dashboard', compact('acara'));
     }
 
@@ -81,7 +102,7 @@ class PanitiaController extends Controller
     {
         $studentId = Auth::user()->student->student_id;
         $activity = StudentActivity::where('activity_code', operator: $activityCode)->first();
-        $dataPanitia = ActivityStructure::with(['activity', 'student', 'role', 'subRole']) // Load both relationships
+        $panitia = ActivityStructure::with(['activity', 'student', 'role', 'subRole']) // Load both relationships
             ->whereHas('activity', function ($query) use ($activityCode) {
                 $query->where('activity_code', $activityCode);
             })
@@ -94,7 +115,7 @@ class PanitiaController extends Controller
         $jadwal = ActivitySchedule::where('student_activity_id', $activity->student_activity_id)
             ->orderBy('start_time', 'asc')
             ->get();
-        $panitia = collect($dataPanitia);
+        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
         return view('siswa.panitia-detail', compact('activity', 'panitia', 'jadwal', 'existingRatings'));
     }
     public function panitiaChat()
@@ -129,85 +150,8 @@ class PanitiaController extends Controller
                 $query->where('student_activity_id', $studentActivityId);
             }
         ])->get();
-        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles'));
-    }
-
-    public function showInterview($activityCode, $registrationId)
-    {
-        // 1. Get the Activity ID from the Code
-        $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
-        $studentActivityId = $activity->student_activity_id;
-
-        // 2. Get the Student's Choices from Registration
-        $registration = RecruitmentRegistration::findOrFail($registrationId);
-
-        // 3. Define which Divisions (SubRoles) we want to see:
-        // ID 1 (General/BPH), Choice 1, and Choice 2 (if exists)
-        $targetSubRoleIds = [1, $registration->choice_1_sub_role_id];
-
-        if ($registration->choice_2_sub_role_id) {
-            $targetSubRoleIds[] = $registration->choice_2_sub_role_id;
-        }
-
-        // 4. Fetch SubRoles and Eager Load Questions
-        // We use whereIn to get only the relevant divisions
-        $listPertanyaanUntukDivisi = SubRole::whereIn('sub_role_id', $targetSubRoleIds)
-            ->with([
-                'activityQuestions' => function ($query) use ($studentActivityId) {
-                    $query->where('student_activity_id', $studentActivityId);
-                    // Optional: Load existing answers for this specific registration
-                    // allowing the interviewer to edit previous saves
-                }
-            ])
-            ->get();
-
-        // 5. Retrieve existing answers to repopulate the form (optional but recommended)
-        // Key the answers by question_id for easy access in Blade
-        $existingData = RecruitmentAnswer::where('recruitment_registration_id', $registrationId)
-            ->get()
-            ->keyBy('question_id');
-
-        return view('siswa.oprec.list-tanya-jawab-wawancara', compact(
-            'listPertanyaanUntukDivisi',
-            'activityCode',
-            'registrationId',
-            'registration',
-            'existingData'
-        ));
-    }
-
-    public function storeInterview(Request $request, $activityCode, $registrationId)
-    {
-        // Validate inputs
-        $request->validate([
-            'answers' => 'array',
-            'answers.*' => 'nullable|string',
-            'notes' => 'array',            // Validate notes array
-            'notes.*' => 'nullable|string',
-        ]);
-
-        // Loop through the answers array: Key = Question ID, Value = The Answer Text
-        $questionIds = array_unique(array_merge(
-            array_keys($request->answers ?? []),
-            array_keys($request->notes ?? [])
-        ));
-
-        foreach ($questionIds as $questionId) {
-            RecruitmentAnswer::updateOrCreate(
-                [
-                    'recruitment_registration_id' => $registrationId,
-                    'question_id' => $questionId,
-                ],
-                [
-                    // Save both fields. Use null coalescing operator (??) 
-                    // in case one field was left untouched/empty.
-                    'answer_text' => $request->answers[$questionId] ?? null,
-                    'interviewer_note' => $request->notes[$questionId] ?? null,
-                ]
-            );
-        }
-
-        return redirect()->back()->with('success', 'Interview answers saved successfully!');
+        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
+        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles', 'listPendaftar'));
     }
 
     public function updateStructure(Request $request, $activityCode)
@@ -248,9 +192,63 @@ class PanitiaController extends Controller
         // 2. Ambil Data Activity
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
 
+        $oldStatus = $activity->status;
+        $newStatus = $request->status;
+        if ($newStatus === 'active' && $oldStatus === 'interview') {
+            DB::beginTransaction();
+            try {
+                // A. Get Accepted Students
+                $acceptedRegistrations = RecruitmentRegistration::where('student_activity_id', $activity->student_activity_id)
+                    ->where('status', 'accepted')
+                    ->get();
+
+                // B. Get Role ID for "Anggota" (Member)
+                $memberRole = StudentRole::where('role_code', 'MEBR')->first();
+                $memberRoleId = $memberRole ? $memberRole->student_role_id : 3;
+
+                // C. Loop and Create Structure
+                foreach ($acceptedRegistrations as $registration) {
+
+                    $finalSubRoleId = $registration->choice_1_sub_role_id;
+
+                    // Safe fallback for division name
+                    $divName = $registration->firstChoice->sub_role_name ?? 'Staff';
+
+                    // Try to create the structure
+                    ActivityStructure::firstOrCreate(
+                        [
+                            'student_activity_id' => $activity->student_activity_id,
+                            'student_id' => $registration->student_id,
+                        ],
+                        [
+                            'student_role_id' => $memberRoleId,
+                            'sub_role_id' => $finalSubRoleId,
+                            'structure_name' => $divName,
+                            'structure_points' => 0,
+                        ]
+                    );
+                }
+
+                // D. Update Status
+                $activity->update(['status' => $newStatus]);
+
+                // 2. Commit: If code reaches here without error, save everything
+                DB::commit();
+
+            } catch (\Exception $e) {
+                // 3. Rollback: If ANY error happened above, undo changes
+                DB::rollBack();
+
+                // Optional: Log the exact error for debugging
+                // Log::error("Failed to activate activity: " . $e->getMessage());
+
+                // Return with error message
+                return redirect()->back()->with('error', 'An error occurred while activating: ' . $e->getMessage());
+            }
+        }
         // 3. LOGIKA KHUSUS: Jika status yang dipilih adalah 'grading_2'
         // Maka jalankan Auto-Fill Rating sebelum update status
-        if ($request->status === 'grading_2') {
+        else if ($request->status === 'grading_2') {
 
             DB::beginTransaction();
             try {
@@ -374,19 +372,7 @@ class PanitiaController extends Controller
         return back()->with('success', 'Berhasil menambah pertanyaan');
     }
 
-    public function panitiaPendaftar($activityCode)
-    {
 
-        $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
-        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
-        return view('siswa.oprec.list_pendaftar', compact('activity', 'listPendaftar'));
-    }
-    public function detailPendaftar($activityCode, $registrationID)
-    {
-        $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
-        $currentStudent = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->where('id', $registrationID)->first();
-        return view('siswa.oprec.detail-pendaftar', compact('activity', 'currentStudent'));
-    }
 
     public function panitiaJadwal()
     {

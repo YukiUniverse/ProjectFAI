@@ -105,8 +105,9 @@
 
         <div class="card-footer bg-transparent border-top px-4 py-3">
             <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">Demo kredensial: <span class="star">★</span> siswa/siswa — admin/admin —
-                    dosen/dosen</small>
+                <a href="{{ route('dummy') }}">
+                    <small class="text-muted">Lihat data dummy</small>
+                </a>
                 <small class="text-muted">© Kampus</small>
             </div>
         </div>
