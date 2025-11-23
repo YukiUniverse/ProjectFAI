@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Lecturer;
+use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,6 +56,13 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    public function dataDummy()
+    {
+        $students = Student::all();
+        $lecturers = Lecturer::all();
+        return view('1datadummy', compact('students', 'lecturers'));
     }
 
 }

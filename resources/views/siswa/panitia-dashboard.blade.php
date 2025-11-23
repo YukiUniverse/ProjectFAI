@@ -72,8 +72,9 @@
                 <div class="d-flex gap-2 mt-3">
                     <a href="{{ route('siswa.panitia-detail', $a->activity_code) }}"
                         class="btn btn-sm btn-outline-primary">Detail Acara</a>
+                    <a href="{{ route('siswa.panitia-pendaftar', $a->activity_code) }}"
+                        class="btn btn-sm btn-outline-primary">List Pendaftar</a>
                     <a href="{{ route('siswa.panitia-jadwal') }}" class="btn btn-sm btn-outline-success">Lihat Jadwal</a>
-                    <a href="{{ route('siswa.panitia-task') }}" class="btn btn-sm btn-outline-info">Lihat Tugas</a>
                 </div>
             </div>
         @endforeach

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityStructure;
 use App\Models\ActivitySchedule;
+use App\Models\RecruitmentAnswer;
+use App\Models\RecruitmentDecision;
+use App\Models\RecruitmentQuestion;
 use App\Models\RecruitmentRegistration;
 use App\Models\StudentActivity;
 use App\Models\StudentRole;
@@ -30,22 +33,43 @@ class PanitiaController extends Controller
     {
         $studentId = Auth::user()->student->student_id;
 
-        $acara = StudentActivity::with('members') // Optional: Eager load members if you need to display them
+        $acara = StudentActivity::with('members', 'registrations') // Optional: Eager load members if you need to display them
             ->whereDoesntHave('members', function ($query) use ($studentId) {
                 $query->where('activity_structures.student_id', $studentId);
             })
+            ->whereDoesntHave('registrations', function ($query) use ($studentId) {
+                $query
+                    ->where('recruitment_registrations.student_id', $studentId);
+            })
+            ->where('status', 'open_recruitment')
             ->get();
         return view('siswa.daftar-acara', compact('acara'));
     }
 
-    public function formPendaftaran()
+    public function formPendaftaran($studentActivityId)
     {
-        return view('siswa.form-pendaftaran');
+        $activity = StudentActivity::findOrFail($studentActivityId);
+        $divisi = SubRole::whereNot('sub_role_name', 'BPH')->get();
+        return view('siswa.form-pendaftaran', compact('activity', 'divisi'));
+    }
+    public function daftarKepanitiaan(Request $request, $studentActivityId)
+    {
+        $validated = $request->validate([
+            "choice_1_sub_role_id" => 'required|exists:sub_roles,sub_role_id',
+            "reason_1" => "required|string",
+            "choice_2_sub_role_id" => 'nullable|integer',
+            "reason_2" => 'nullable|string',
+        ]);
+        $validated["status"] = "pending";
+        $validated["student_activity_id"] = $studentActivityId;
+        $validated["student_id"] = Auth::user()->student->student_id;
+        RecruitmentRegistration::firstOrCreate($validated);
+        return redirect()->route('siswa.status-pendaftaran')->with("success", "Berhasil daftar!");
     }
 
     public function statusPendaftaran()
     {
-        $data = RecruitmentRegistration::with('activityDetail')->where('student_id', Auth::user()->student->student_id)->get();
+        $data = RecruitmentRegistration::with('activityDetail', 'firstChoice', 'secondChoice')->where('student_id', Auth::user()->student->student_id)->get();
         return view('siswa.status-pendaftaran', compact('data'));
     }
 
@@ -53,8 +77,6 @@ class PanitiaController extends Controller
     {
         return view('siswa.status-proposal');
     }
-
-
 
     public function proposalAjukan()
     {
@@ -71,7 +93,8 @@ class PanitiaController extends Controller
         $acara = StudentActivity::with('members')->whereHas('members', function ($query) use ($studentId) {
             $query->where('activity_structures.student_id', $studentId);
         })
-            ->get();
+            ->
+            where('status', '!=', 'finished')->get();
         return view('siswa.panitia-dashboard', compact('acara'));
     }
 
@@ -79,20 +102,20 @@ class PanitiaController extends Controller
     {
         $studentId = Auth::user()->student->student_id;
         $activity = StudentActivity::where('activity_code', operator: $activityCode)->first();
-        $dataPanitia = ActivityStructure::with(['activity', 'student', 'role', 'subRole']) // Load both relationships
+        $panitia = ActivityStructure::with(['activity', 'student', 'role', 'subRole']) // Load both relationships
             ->whereHas('activity', function ($query) use ($activityCode) {
                 $query->where('activity_code', $activityCode);
             })
             ->get();
         $existingRatings = StudentRating::where('student_activity_id', $activity->student_activity_id)
-        ->where('rater_student_id', $studentId)
-        ->get()
-        ->keyBy('rated_student_id');
-        
+            ->where('rater_student_id', $studentId)
+            ->get()
+            ->keyBy('rated_student_id');
+
         $jadwal = ActivitySchedule::where('student_activity_id', $activity->student_activity_id)
-                    ->orderBy('start_time', 'asc')
-                    ->get();
-        $panitia = collect($dataPanitia);
+            ->orderBy('start_time', 'asc')
+            ->get();
+        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
         return view('siswa.panitia-detail', compact('activity', 'panitia', 'jadwal', 'existingRatings'));
     }
     public function panitiaChat()
@@ -127,7 +150,8 @@ class PanitiaController extends Controller
                 $query->where('student_activity_id', $studentActivityId);
             }
         ])->get();
-        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles'));
+        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
+        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles', 'listPendaftar'));
     }
 
     public function updateStructure(Request $request, $activityCode)
@@ -141,7 +165,7 @@ class PanitiaController extends Controller
         try {
             // Loop setiap data yang dikirim dari form
             foreach ($request->updates as $structureId => $newRoleId) {
-                
+
                 // Update student_role_id di tabel activity_structures
                 ActivityStructure::where('activity_structure_id', $structureId)
                     ->update([
@@ -168,10 +192,64 @@ class PanitiaController extends Controller
         // 2. Ambil Data Activity
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
 
+        $oldStatus = $activity->status;
+        $newStatus = $request->status;
+        if ($newStatus === 'active' && $oldStatus === 'interview') {
+            DB::beginTransaction();
+            try {
+                // A. Get Accepted Students
+                $acceptedRegistrations = RecruitmentRegistration::where('student_activity_id', $activity->student_activity_id)
+                    ->where('status', 'accepted')
+                    ->get();
+
+                // B. Get Role ID for "Anggota" (Member)
+                $memberRole = StudentRole::where('role_code', 'MEBR')->first();
+                $memberRoleId = $memberRole ? $memberRole->student_role_id : 3;
+
+                // C. Loop and Create Structure
+                foreach ($acceptedRegistrations as $registration) {
+
+                    $finalSubRoleId = $registration->choice_1_sub_role_id;
+
+                    // Safe fallback for division name
+                    $divName = $registration->firstChoice->sub_role_name ?? 'Staff';
+
+                    // Try to create the structure
+                    ActivityStructure::firstOrCreate(
+                        [
+                            'student_activity_id' => $activity->student_activity_id,
+                            'student_id' => $registration->student_id,
+                        ],
+                        [
+                            'student_role_id' => $memberRoleId,
+                            'sub_role_id' => $finalSubRoleId,
+                            'structure_name' => $divName,
+                            'structure_points' => 0,
+                        ]
+                    );
+                }
+
+                // D. Update Status
+                $activity->update(['status' => $newStatus]);
+
+                // 2. Commit: If code reaches here without error, save everything
+                DB::commit();
+
+            } catch (\Exception $e) {
+                // 3. Rollback: If ANY error happened above, undo changes
+                DB::rollBack();
+
+                // Optional: Log the exact error for debugging
+                // Log::error("Failed to activate activity: " . $e->getMessage());
+
+                // Return with error message
+                return redirect()->back()->with('error', 'An error occurred while activating: ' . $e->getMessage());
+            }
+        }
         // 3. LOGIKA KHUSUS: Jika status yang dipilih adalah 'grading_2'
         // Maka jalankan Auto-Fill Rating sebelum update status
-        if ($request->status === 'grading_2') {
-            
+        else if ($request->status === 'grading_2') {
+
             DB::beginTransaction();
             try {
                 // Ambil semua ID mahasiswa yang jadi panitia di acara ini
@@ -183,7 +261,8 @@ class PanitiaController extends Controller
                     foreach ($memberIds as $ratedId) {   // Yang Dinilai
 
                         // Skip jika orang yang sama (tidak menilai diri sendiri)
-                        if ($raterId == $ratedId) continue;
+                        if ($raterId == $ratedId)
+                            continue;
 
                         // Cek & Isi Otomatis
                         // firstOrCreate: Cek database, jika belum ada rating, buat baru.
@@ -192,18 +271,18 @@ class PanitiaController extends Controller
                             [
                                 // KUNCI PENCARIAN (Syarat Unik)
                                 'student_activity_id' => $activity->student_activity_id,
-                                'rater_student_id'    => $raterId,
-                                'rated_student_id'    => $ratedId,
+                                'rater_student_id' => $raterId,
+                                'rated_student_id' => $ratedId,
                             ],
                             [
                                 // DATA DEFAULT (Hanya dipakai jika data baru dibuat)
-                                'stars'  => 4,
+                                'stars' => 4,
                                 'reason' => 'No Comment',
                             ]
                         );
                     }
                 }
-                
+
                 DB::commit();
                 // Lanjut ke proses update status di bawah...
 
@@ -219,20 +298,20 @@ class PanitiaController extends Controller
         ]);
 
         $statusLabels = [
-            'preparation'      => 'Preparation',
+            'preparation' => 'Preparation',
             'open_recruitment' => 'Open Recruitment',
-            'interview'        => 'Interview',
-            'active'           => 'Active',
-            'grading_1'        => 'Start Grading',   // <--- Sesuai Request
-            'grading_2'        => 'Final Grading',   // <--- Sesuai Request
-            'finished'         => 'Finished',
+            'interview' => 'Interview',
+            'active' => 'Active',
+            'grading_1' => 'Start Grading',   // <--- Sesuai Request
+            'grading_2' => 'Final Grading',   // <--- Sesuai Request
+            'finished' => 'Finished',
         ];
 
         // Ambil label berdasarkan status yg dipilih (default ke teks asli jika tidak ada di list)
         $statusName = $statusLabels[$request->status] ?? ucfirst($request->status);
 
         $message = 'Status timeline berhasil diperbarui menjadi: ' . $statusName;
-        
+
         // Tambahan pesan jika masuk ke Final Grading
         if ($request->status === 'grading_2') {
             $message .= '. Sistem otomatis mengisi rating kosong dengan nilai default.';
@@ -252,10 +331,10 @@ class PanitiaController extends Controller
         DB::beginTransaction();
         try {
             foreach ($request->grading as $structureId => $data) {
-                
+
                 // 1. Ambil array alasan dari checkbox
                 $selectedReasons = $data['reasons'] ?? [];
-                
+
                 // Jika ada review manual, tambahkan ke array
                 if (!empty($data['manual_review'])) {
                     $selectedReasons[] = $data['manual_review'];
@@ -268,7 +347,7 @@ class PanitiaController extends Controller
                 // 3. Update Database
                 ActivityStructure::where('activity_structure_id', $structureId)->update([
                     'final_point_percentage' => $data['percentage'],
-                    'final_review'           => $finalReviewText
+                    'final_review' => $finalReviewText
                 ]);
             }
 
@@ -280,6 +359,20 @@ class PanitiaController extends Controller
             return back()->with('error', 'Terjadi kesalahan saat menyimpan: ' . $e->getMessage());
         }
     }
+
+    public function tambahPertanyaan(Request $request, $activityCode)
+    {
+        $validated = $request->validate([
+            'question' => 'required|string',
+            'sub_role_id' => 'required',
+            'student_activity_id' => 'required'
+        ]);
+        $newQuestion = RecruitmentQuestion::create($validated);
+
+        return back()->with('success', 'Berhasil menambah pertanyaan');
+    }
+
+
 
     public function panitiaJadwal()
     {
@@ -299,10 +392,10 @@ class PanitiaController extends Controller
         // 2. Ambil Riwayat Kepanitiaan (HANYA YANG FINISHED)
         $histories = ActivityStructure::with(['activity', 'role', 'subRole'])
             ->where('student_id', $studentId)
-            ->whereHas('activity', function($q) {
+            ->whereHas('activity', function ($q) {
                 // vvv TAMBAHKAN FILTER INI vvv
-                $q->where('status', 'finished') 
-                ->orderBy('start_datetime', 'desc');
+                $q->where('status', 'finished')
+                    ->orderBy('start_datetime', 'desc');
             })
             ->get();
 
@@ -323,7 +416,7 @@ class PanitiaController extends Controller
         return view('siswa.riwayat-acara', compact('histories', 'overallKpi', 'totalEvent'));
     }
 
-    public function saveEvaluasi(Request $request, $activityCode) 
+    public function saveEvaluasi(Request $request, $activityCode)
     {
         // 1. Validasi Input
         $request->validate([
@@ -334,7 +427,7 @@ class PanitiaController extends Controller
 
         // 2. Ambil Data Pendukung
         $user = Auth::user();
-        
+
         // Pastikan user terhubung ke data student
         if (!$user->student) {
             return back()->with('error', 'Data mahasiswa tidak ditemukan.');
@@ -349,20 +442,21 @@ class PanitiaController extends Controller
         DB::beginTransaction();
         try {
             foreach ($request->evaluations as $ratedStudentId => $data) {
-                
+
                 // Skip jika menilai diri sendiri (Double check backend side)
-                if ($ratedStudentId == $raterId) continue;
+                if ($ratedStudentId == $raterId)
+                    continue;
 
                 StudentRating::updateOrCreate(
                     [
                         // Kunci pencarian (agar tidak duplikat)
                         'student_activity_id' => $activity->student_activity_id,
-                        'rater_student_id'    => $raterId,           // Penilai (Saya)
-                        'rated_student_id'    => $ratedStudentId,    // Yang Dinilai (Teman)
+                        'rater_student_id' => $raterId,           // Penilai (Saya)
+                        'rated_student_id' => $ratedStudentId,    // Yang Dinilai (Teman)
                     ],
                     [
                         // Data yang diupdate/insert
-                        'stars'  => $data['stars'],
+                        'stars' => $data['stars'],
                         'reason' => $data['reason'],
                     ]
                 );

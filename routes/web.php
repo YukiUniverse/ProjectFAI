@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\OpenRecruitmentController;
 use App\Http\Controllers\PanitiaController;
 use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
@@ -9,6 +10,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+Route::get('/dummy', [LoginController::class, 'dataDummy'])->name('dummy');
 Route::post('/login', [LoginController::class, 'login'])->name('tryLogin');
 Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
@@ -16,25 +18,40 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::get('/dashboard', [PanitiaController::class, 'dashboard'])->name('siswa.dashboard');
     Route::get('/profile', [PanitiaController::class, 'profile'])->name('siswa.profile');
     Route::get('/daftar-acara', [PanitiaController::class, 'daftarAcara'])->name('siswa.daftar-acara');
-    Route::get('/form-pendaftaran', [PanitiaController::class, 'formPendaftaran'])->name('siswa.form-pendaftaran');
+    Route::get('/form-pendaftaran/{studentActivityId}', [PanitiaController::class, 'formPendaftaran'])->name('siswa.form-pendaftaran');
+    Route::post('/form-pendaftaran/{studentActivityId}', [PanitiaController::class, 'daftarKepanitiaan'])->name('siswa.daftar');
     Route::get('/status-pendaftaran', [PanitiaController::class, 'statusPendaftaran'])->name('siswa.status-pendaftaran');
     Route::get('/status-proposal', [PanitiaController::class, 'statusProposal'])->name('siswa.status-proposal');
     Route::get('/proposal-ajukan', [PanitiaController::class, 'proposalAjukan'])->name('siswa.proposal-ajukan');
 
     // Panitia (umum)
+
     Route::get('/panitia/dashboard/', [PanitiaController::class, 'panitiaDashboard'])->name('siswa.panitia-dashboard');
+    // Oprec
+    Route::get('/panitia/pendaftar/{activityCode}', [OpenRecruitmentController::class, 'panitiaPendaftar'])->name('siswa.panitia-pendaftar');
+    Route::get('/panitia/pendaftar/{activityCode}/detail/{registrationID}', [OpenRecruitmentController::class, 'detailPendaftar'])->name('siswa.detail-pendaftar');
+    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationID}/storeDecision', [OpenRecruitmentController::class, 'storeInterviewerDecision'])->name('siswa.store-decision');
+    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationID}/storeFinalDecision', [OpenRecruitmentController::class, 'storeFinalDecision'])->name('siswa.store-decision-akhir');
+    // Route to show the interview page
+    Route::get('/panitia/pendaftar/{activityCode}/detail/{registrationId}/interview', [OpenRecruitmentController::class, 'showInterview'])->name('siswa.showInterview');
+    // Route to save the answers
+    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationId}/interview', [OpenRecruitmentController::class, 'storeInterview'])->name('siswa.storeInterview');
+
+
+
     Route::get('/panitia/detail/{activityCode}', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail');
     Route::get('/panitia/chat/', [PanitiaController::class, 'panitiaChat'])->name('siswa.panitia-chat');
     Route::get('/panitia/pengurus/{activityCode}', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus');
+    Route::post('/panitia/pengurus/pertanyaan/{activityCode}', [PanitiaController::class, 'tambahPertanyaan'])->name('siswa.tambah-pertanyaan');
     Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal');
-    Route::get('/panitia/task/', [PanitiaController::class, 'panitiaTask'])->name('siswa.panitia-task');
+
     Route::post('/panitia/saveEvaluasi/{activityCode}', [PanitiaController::class, 'saveEvaluasi'])->name('siswa.panitia-save-evaluasi');
     Route::post('/panitia/simpan-grading/{activityCode}', [PanitiaController::class, 'saveGrading'])
-    ->name('siswa.panitia-save-grading');
+        ->name('siswa.panitia-save-grading');
     Route::post('/panitia/update-status/{activityCode}', [PanitiaController::class, 'updateStatus'])
-    ->name('siswa.panitia-update-status');
+        ->name('siswa.panitia-update-status');
     Route::post('/panitia/update-struktur/{activityCode}', [PanitiaController::class, 'updateStructure'])
-    ->name('siswa.panitia-update-struktur');
+        ->name('siswa.panitia-update-struktur');
     // Simpan Jadwal (Perlu activityCode untuk tahu ini jadwal acara apa)
     Route::post('/panitia/store-schedule/{activityCode}', [ScheduleController::class, 'store'])->name('siswa.jadwal-store');
     // Halaman Edit
