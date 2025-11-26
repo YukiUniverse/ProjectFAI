@@ -1,46 +1,75 @@
-@extends('layouts.dosen') {{-- Sesuaikan layout Anda --}}
+@extends('layouts.dosen')
+@section('title', 'Laporan KPI Mahasiswa')
 @section('content')
 
-<h3 class="mb-4">📊 Laporan KPI Mahasiswa</h3>
+<h3 class="mb-3">Laporan KPI Mahasiswa</h3>
+<p class="text-muted">Berikut daftar seluruh mahasiswa bimbingan Anda beserta rata-rata KPI (penilaian kinerja) mereka dari berbagai acara.</p>
 
-<div class="card shadow-sm">
+<div class="card shadow-sm border-0">
     <div class="card-body">
-        <table class="table table-hover align-middle">
+        <table class="table table-bordered align-middle">
             <thead class="table-primary text-center">
                 <tr>
-                    <th>NIM</th>
                     <th>Nama Mahasiswa</th>
-                    <th>Jurusan</th>
-                    <th>Rata-rata Rating (KPI)</th>
-                    <th>Predikat</th>
+                    <th>NIM</th>
+                    <th>Program Studi</th>
+                    <th>Acara Terakhir</th>
+                    <th>Rata-rata KPI</th>
+                    <th>Status Kinerja</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($students as $s)
                 <tr>
-                    <td class="text-center">{{ $s->student_number }}</td>
-                    <td>{{ $s->full_name }}</td>
-                    <td>{{ $s->department->department_name ?? '-' }}</td>
-                    
-                    <td class="text-center fw-bold text-primary">
-                        @if($s->kpi_score !== 'Belum Ada')
-                            ⭐ {{ $s->kpi_score }}
-                        @else
-                            <span class="text-muted small">Belum ada data</span>
-                        @endif
-                    </td>
-                    
-                    <td class="text-center">
-                        @if($s->predikat == 'Sangat Baik') <span class="badge bg-success">Sangat Baik</span>
-                        @elseif($s->predikat == 'Baik') <span class="badge bg-info">Baik</span>
-                        @elseif($s->predikat == 'Cukup') <span class="badge bg-warning">Cukup</span>
-                        @else <span class="badge bg-secondary">-</span>
-                        @endif
-                    </td>
+                    <td>Andi Wijaya</td>
+                    <td>220110123</td>
+                    <td>Teknik Informatika</td>
+                    <td>Festival Kampus 2025</td>
+                    <td class="text-center text-warning fs-5">★ ★ ★ ★</td>
+                    <td><span class="badge bg-success">Sangat Baik</span></td>
                 </tr>
-                @endforeach
+
+                <tr>
+                    <td>Bella Sari</td>
+                    <td>220110456</td>
+                    <td>Manajemen</td>
+                    <td>Seminar Nasional 2025</td>
+                    <td class="text-center text-warning fs-5">★ ★ ★ ☆</td>
+                    <td><span class="badge bg-primary">Baik</span></td>
+                </tr>
+
+                <tr>
+                    <td>Cindy Prameswari</td>
+                    <td>220110789</td>
+                    <td>Desain Komunikasi Visual</td>
+                    <td>Webinar AI 2025</td>
+                    <td class="text-center text-warning fs-5">★ ★ ☆ ☆</td>
+                    <td><span class="badge bg-warning text-dark">Cukup</span></td>
+                </tr>
+
+                <tr>
+                    <td>David Halim</td>
+                    <td>220110321</td>
+                    <td>Teknik Industri</td>
+                    <td>Festival Kampus 2025</td>
+                    <td class="text-center text-warning fs-5">★ ★ ★ ★</td>
+                    <td><span class="badge bg-success">Sangat Baik</span></td>
+                </tr>
+
+                <tr>
+                    <td>Evelyn Putri</td>
+                    <td>220110654</td>
+                    <td>Hukum</td>
+                    <td>Seminar Nasional 2025</td>
+                    <td class="text-center text-warning fs-5">★ ★ ★ ☆</td>
+                    <td><span class="badge bg-primary">Baik</span></td>
+                </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<div class="text-end mt-3">
+    <a href="{{ route('dosen.dashboard') }}" class="btn btn-outline-secondary">⬅️ Kembali ke Dashboard</a>
+</div>
+
 @endsection
