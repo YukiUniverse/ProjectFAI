@@ -33,9 +33,4 @@ class Student extends Model
     {
         return $this->hasMany(ActivityStructure::class, 'student_id', 'student_id');
     }
-
-     public function department()
-    {
-        return $this->belongsTo(AcademicDepartment::class, 'department_id', 'department_id');
-    }
 }
