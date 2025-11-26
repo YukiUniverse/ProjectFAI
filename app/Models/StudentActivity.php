@@ -30,12 +30,6 @@ class StudentActivity extends Model
         return $this->belongsTo(Proposal::class, 'proposal_id', 'id');
     }
 
-    // --- PERBAIKAN: Tambahkan Relasi Organisasi ---
-    public function organization()
-    {
-        return $this->belongsTo(StudentOrganization::class, 'student_organization_id', 'student_organization_id');
-    }    
-
     // Ambil daftar anggota resmi (ActivityStructure)
     public function members()
     {
