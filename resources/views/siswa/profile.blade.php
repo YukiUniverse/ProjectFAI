@@ -37,7 +37,7 @@
                             </div>
                         </div>
 
-                        <h4 class="mb-3">📄 CV Saat Ini</h4>
+                        {{-- <h4 class="mb-3">📄 CV Saat Ini</h4>
                         <div class="cv-embed-container mb-5 p-3 border rounded bg-light">
                             <div class="text-center py-5 text-muted">
                                 <i class="bi bi-file-earmark-pdf" style="font-size: 3rem;"></i>
@@ -60,7 +60,7 @@
                             </div>
                             <small class="form-text text-muted">Format yang didukung: PDF, DOC, DOCX. Maksimal ukuran:
                                 2MB.</small>
-                        </form>
+                        </form> --}}
 
                     </div>
                 </div>
