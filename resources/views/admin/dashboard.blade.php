@@ -10,7 +10,7 @@
     <div class="col-md-4">
         <div class="card shadow-sm border-0 p-3 text-center">
             <h6 class="text-secondary mb-1">Total Acara</h6>
-            <h3 class="fw-bold text-primary">12</h3>
+            <h3 class="fw-bold text-primary">-</h3>
             <a href="{{ route('admin.acara-list') }}" class="btn btn-outline-primary btn-sm">📅 Lihat Semua</a>
         </div>
     </div>
@@ -18,7 +18,7 @@
     <div class="col-md-4">
         <div class="card shadow-sm border-0 p-3 text-center">
             <h6 class="text-secondary mb-1">Proposal Pending</h6>
-            <h3 class="fw-bold text-warning">5</h3>
+            <h3 class="fw-bold text-warning">-</h3>
             <a href="{{ route('admin.proposal-list') }}" class="btn btn-outline-warning btn-sm">📄 Kelola Proposal</a>
         </div>
     </div>
@@ -26,7 +26,7 @@
     <div class="col-md-4">
         <div class="card shadow-sm border-0 p-3 text-center">
             <h6 class="text-secondary mb-1">Laporan KPI Baru</h6>
-            <h3 class="fw-bold text-danger">3</h3>
+            <h3 class="fw-bold text-danger">-</h3>
             <a href="{{ route('admin.laporan') }}" class="btn btn-outline-danger btn-sm">📊 Lihat Laporan</a>
         </div>
     </div>

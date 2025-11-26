@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DosenController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\OpenRecruitmentController;
 use App\Http\Controllers\PanitiaController;
@@ -69,13 +71,23 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 | ROUTE ADMIN
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->middleware(['auth', 'check-role:admin'])->group(function () {
-    Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
-    Route::view('/acara', 'admin.acara-list')->name('admin.acara-list');
-    Route::view('/proposal', 'admin.proposal-list')->name('admin.proposal-list');
-    Route::view('/laporan', 'admin.laporan')->name('admin.laporan');
-    Route::view('/laporan/{acara}', 'admin.laporan-detail')->name('admin.laporan-detail');
-    Route::view('/acara/{acara}/panitia', 'admin.panitia-acara-detail')->name('admin.panitia-acara-detail');
+Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+// Proposal
+    Route::get('/proposal', [AdminController::class, 'proposalList'])->name('proposal-list');
+    Route::post('/proposal/{id}/verify', [AdminController::class, 'verifyProposal'])->name('proposal-verify');
+
+    // Acara
+    Route::get('/acara', [AdminController::class, 'acaraList'])->name('acara-list');
+    Route::get('/acara/{activityCode}/panitia', [AdminController::class, 'panitiaDetail'])->name('panitia-detail');
+
+    // Laporan 
+    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan'); 
+    // Resulting Name: 'admin.laporan' <--- This fixes your error
+    
+    Route::get('/laporan/detail/{activityCode}', [AdminController::class, 'laporanDetail'])->name('laporan-detail');
+    Route::get('/history-pendaftaran', [AdminController::class, 'historyPendaftaran'])->name('history-pendaftaran');
 });
 
 /*
@@ -83,8 +95,8 @@ Route::prefix('admin')->middleware(['auth', 'check-role:admin'])->group(function
 | ROUTE DOSEN
 |--------------------------------------------------------------------------
 */
-Route::prefix('dosen')->middleware(['auth', 'check-role:lecturer'])->group(function () {
-    Route::view('/dashboard', 'dosen.dashboard')->name('dosen.dashboard');
-    Route::view('/laporan-kpi', 'dosen.laporan-kpi')->name('dosen.laporan-kpi');
+Route::middleware(['auth', 'check-role:lecturer'])->prefix('dosen')->name('dosen.')->group(function () {
+    Route::get('/dashboard', [DosenController::class, 'dashboard'])->name('dashboard');
+    Route::get('/laporan-kpi', [DosenController::class, 'laporanKpi'])->name('laporan-kpi');
 });
 
