@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DosenController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PanitiaController;
 use App\Http\Controllers\ScheduleController;
@@ -49,10 +51,12 @@ Route::prefix('siswa')->middleware(['auth', 'role:student'])->group(function () 
     Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
 });
 
-// ==========================
-// 1. GROUP ADMIN
-// ==========================
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+/*
+|--------------------------------------------------------------------------
+| ROUTE ADMIN
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
 // Proposal
@@ -69,6 +73,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     Route::get('/laporan/detail/{activityCode}', [AdminController::class, 'laporanDetail'])->name('laporan-detail');
     Route::get('/history-pendaftaran', [AdminController::class, 'historyPendaftaran'])->name('history-pendaftaran');
+});
+
+/*
+|--------------------------------------------------------------------------
+| ROUTE DOSEN
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'check-role:lecturer'])->prefix('dosen')->name('dosen.')->group(function () {
+    Route::get('/dashboard', [DosenController::class, 'dashboard'])->name('dashboard');
+    Route::get('/laporan-kpi', [DosenController::class, 'laporanKpi'])->name('laporan-kpi');
 });
 
 // ==========================
