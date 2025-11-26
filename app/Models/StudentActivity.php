@@ -42,6 +42,11 @@ class StudentActivity extends Model
         return $this->hasMany(RecruitmentRegistration::class, 'student_activity_id', 'student_activity_id');
     }
 
+    public function organization()
+    {
+        return $this->belongsTo(StudentOrganization::class, 'student_organization_id', 'student_organization_id');
+    }
+
     // Ambil jadwal (Schedule)
     public function schedules()
     {

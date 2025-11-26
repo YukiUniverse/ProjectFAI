@@ -18,7 +18,7 @@ class Student extends Model
     // Relasi ke User Login
     public function user()
     {
-        return $this->hasOne(User::class, 'student_id', 'student_id');
+        return $this->hasOne(User::class, 'student_number', 'student_number');
     }
 
     // Relasi ke kepanitiaan yang diikuti (Activity Structure)
@@ -27,7 +27,7 @@ class Student extends Model
         return $this->hasMany(ActivityStructure::class, 'student_id', 'student_id');
     }
 
-     public function department()
+    public function department()
     {
         return $this->belongsTo(AcademicDepartment::class, 'department_id', 'department_id');
     }
