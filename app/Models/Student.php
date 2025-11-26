@@ -15,12 +15,19 @@ class Student extends Model
         'department_id',  // Jurusan
     ];
 
-    // Relasi ke User Login
+// --- PERBAIKAN 1: Relasi ke User Login ---
     public function user()
     {
-        return $this->hasOne(User::class, 'student_id', 'student_id');
+        // Di database, tabel users terhubung lewat 'student_number', bukan 'student_id'
+        return $this->hasOne(User::class, 'student_number', 'student_number');
     }
 
+    // --- PERBAIKAN 2: Relasi ke Jurusan (Wajib untuk Laporan KPI Dosen) ---
+    public function department()
+    {
+        return $this->belongsTo(AcademicDepartment::class, 'department_id', 'department_id');
+    }
+    
     // Relasi ke kepanitiaan yang diikuti (Activity Structure)
     public function activities()
     {
