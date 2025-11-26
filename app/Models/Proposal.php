@@ -15,7 +15,7 @@ class Proposal extends Model
     ];
 
     // Siapa ketua yang mengajukan
-    public function proposer()
+    public function student()
     {
         return $this->belongsTo(Student::class, 'student_id', 'student_id');
     }

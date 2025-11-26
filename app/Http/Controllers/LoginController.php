@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Lecturer;
-use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,8 +21,10 @@ class LoginController extends Controller
             'username' => ['required', 'string', 'max:255'],
             'password' => ['required'],
         ]);
+// PERBAIKAN: Tambahkan pencarian berdasarkan email juga
         $user = User::where('student_number', $credentials['username'])
             ->orWhere('lecturer_code', $credentials['username'])
+            ->orWhere('email', $credentials['username']) // <--- TAMBAHAN INI PENTING
             ->first();
         if ($user && Hash::check($credentials['password'], $user->password)) {
 
@@ -58,11 +58,7 @@ class LoginController extends Controller
         return redirect('/');
     }
 
-    public function dataDummy()
-    {
-        $students = Student::all();
-        $lecturers = Lecturer::all();
-        return view('1datadummy', compact('students', 'lecturers'));
-    }
-
 }
+
+
+// support login email
