@@ -89,7 +89,7 @@
                                 }
                             }
                         @endphp
-                        <div class="stepper-item {{ $statusClass }}" 
+                        <!-- <div class="stepper-item {{ $statusClass }}" 
                             onclick="updateDescription(this, '{{ addslashes($data['desc']) }}')" 
                             style="cursor: pointer;">
                             
@@ -103,7 +103,7 @@
                             </div>
                             
                             <div class="step-name">{{ $data['label'] }}</div>
-                        </div>
+                        </div> -->
                     @endforeach
                 </div>
 
@@ -149,71 +149,111 @@
         </div>
 
         <div class="tab-pane fade show active" id="timeline">
+            <div class="card shadow-sm border-0 rounded-4">
+    <!-- Header -->
+    <div class="card-header bg-white p-4 border-bottom">
+        <h6 class="fw-bold text-success mb-0 d-flex align-items-center">
+            <i class="bi bi-diagram-3-fill me-2 fs-5"></i> Tambah dan Edit Divisi
+        </h6>
+    </div>
+
+    <div class="card-body p-4">
+        
+        <!-- Section 1: List of Existing Divisions -->
+        <div class="mb-4">
+            <h6 class="text-uppercase text-muted fw-bold small mb-3">
+                <i class="bi bi-list-ul me-1"></i> Daftar Divisi
+            </h6>
             
+            @if($listDivisi->isEmpty())
+                <div class="alert alert-light border border-dashed text-center text-muted rounded-3 py-3">
+                    <small>Belum ada divisi yang dibuat.</small>
+                </div>
+            @else
+                <div class="list-group list-group-flush rounded-3 border">
+                    @foreach ($listDivisi as $d)
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-3 py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 text-success rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <span class="fw-bold small">{{ $loop->iteration }}</span>
+                                </div>
+                                <div>
+                                    <span class="fw-semibold text-dark">{{ $d->sub_role_name }}</span>
+                                    @if($d->sub_role_name_en)
+                                        <small class="text-muted ms-1 fst-italic">({{ $d->sub_role_name_en }})</small>
+                                    @endif
+                                </div>
+                            </div>
+                            
+                            {{-- Edit Button (Optional: You can add JS logic later to populate the form) --}}
+                            <button type="button" class="btn btn-sm btn-light text-secondary rounded-circle border-0" 
+                                    onclick="editDivision('{{ $d->sub_role_id }}', '{{ $d->sub_role_name }}', '{{ $d->sub_role_name_en }}')">
+                                <i class="bi bi-pencil-fill small"></i>
+                            </button>
+                            <a href="{{ route('siswa.panitia-hapus-divisi', [$activity->student_activity_id, $d->sub_role_id]) }}"></a>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
-        {{-- TAB 4: STRUKTUR --}}
-        <div class="tab-pane fade" id="struktur">
-            <div class="card shadow-sm p-4">
-                <h6 class="fw-bold text-success mt-4">🏗️ Atur Struktur BPH & Koordinator Divisi</h6>
+        <hr class="my-4 text-muted opacity-25">
+
+        <!-- Section 2: Form -->
+        <div>
+            <h6 class="text-uppercase text-muted fw-bold small mb-3">
+                <i class="bi bi-plus-circle me-1"></i> Form Input
+            </h6>
+
+            <form action="{{ route('siswa.panitia-tambah-divisi', $activity->student_activity_id) }}" method="post">
+                @csrf
                 
-                {{-- FORM START --}}
-                <form action="{{ route('siswa.panitia-update-struktur', $activity->activity_code) }}" method="POST">
-                    @csrf
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered align-middle">
-                            <thead class="table-light text-center">
-                                <tr>
-                                    <th>Nama</th>
-                                    <th>Divisi</th>
-                                    <th>Jabatan Sekarang</th>
-                                    <th style="width: 30%">Ubah Jabatan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($panitiaList as $p)
-                                    <tr>
-                                        <td>
-                                            <strong>{{ $p->student->full_name }}</strong>
-                                        </td>
-                                        <td class="text-center">
-                                            {{ $p->subRole->sub_role_name_en ?? '-' }}
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-info text-dark">{{ $p->role->role_name }}</span>
-                                        </td>
-                                        <td>
-                                            {{-- SELECT BOX --}}
-                                            {{-- Name array: updates[ID_STRUCTURE] = NEW_ROLE_ID --}}
-                                            <select class="form-select" name="updates[{{ $p->activity_structure_id }}]">
-                                                @foreach($roles as $r)
-                                                    <option value="{{ $r->student_role_id }}" 
-                                                        {{ $p->student_role_id == $r->student_role_id ? 'selected' : '' }}>
-                                                        {{ $r->role_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                {{-- Hidden Input for ID (used for updates) --}}
+                <input type="hidden" name="sub_role_id" id="input_sub_role_id" value="">
+
+                <div class="row g-3">
+                    {{-- Input Name (ID) --}}
+                    <div class="col-md-6">
+                        <label for="sub_role_name" class="form-label small text-muted fw-semibold">Nama Divisi (Indonesia)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-flag-fill text-danger"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0 ps-0" 
+                                   name="sub_role_name" id="input_sub_role_name" 
+                                   placeholder="Contoh: Acara" required>
+                        </div>
                     </div>
 
-                    <div class="text-end mt-3">
-                        <button type="submit" class="btn btn-success">
-                            💾 Simpan Perubahan Struktur
+                    {{-- Input Name (EN) --}}
+                    <div class="col-md-6">
+                        <label for="sub_role_name_en" class="form-label small text-muted fw-semibold">Nama Divisi (English)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-flag-fill text-primary"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0 ps-0" 
+                                   name="sub_role_name_en" id="input_sub_role_name_en" 
+                                   placeholder="Example: Event">
+                        </div>
+                    </div>
+
+                    {{-- Submit Button --}}
+                    <div class="col-12 mt-4 d-flex justify-content-end gap-2">
+                        <button type="reset" class="btn btn-light text-muted px-3 fw-semibold" onclick="resetForm()">
+                            Reset
+                        </button>
+                        <button type="submit" class="btn btn-success px-4 rounded-pill fw-bold shadow-sm">
+                            <i class="bi bi-save me-1"></i> Simpan Data
                         </button>
                     </div>
-                </form>
-                {{-- FORM END --}}
-                
-            </div>
+                </div>
+            </form>
         </div>
+    </div>
+</div>
 
-        
-
+        </div>
+        {{-- TAB 3: STRUKTUR --}}
+        <div class="tab-pane fade" id="struktur">
+            @include('siswa.preparation.partials.panitia-table')
+        </div>
     </div> {{-- END TAB CONTENT --}}
 
     <script>
@@ -221,6 +261,16 @@
             document.getElementById('desc-text').innerText = text;
             document.querySelectorAll('.stepper-item').forEach(el => el.classList.remove('step-selected'));
             element.classList.add('step-selected');
+        }
+        function editDivision(id, name, nameEn) {
+            document.getElementById('input_sub_role_id').value = id;
+            document.getElementById('input_sub_role_name').value = name;
+            document.getElementById('input_sub_role_name_en').value = nameEn;
+            document.getElementById('input_sub_role_name').focus();
+        }
+
+        function resetForm() {
+            document.getElementById('input_sub_role_id').value = '';
         }
     </script>
 @endsection
