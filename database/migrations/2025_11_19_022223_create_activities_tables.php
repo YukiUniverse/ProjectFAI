@@ -44,6 +44,16 @@ return new class extends Migration {
             $table->foreign('student_organization_id')->references('student_organization_id')->on('student_organizations');
         });
 
+        Schema::create('sub_roles', function (Blueprint $table) {
+            $table->increments('sub_role_id');
+            $table->string('sub_role_code', 10)->nullable();
+            $table->unsignedInteger('student_activity_id');
+            $table->string('sub_role_name', 255);
+            $table->string('sub_role_name_en', 255)->nullable();
+            $table->timestamps();
+            $table->foreign('student_activity_id')->references('student_activity_id')->on('student_activities');
+        });
+
         // 3. Activity Structures (Paten + Modifikasi Nilai Akhir)
         Schema::create('activity_structures', function (Blueprint $table) {
             $table->increments('activity_structure_id');
@@ -73,6 +83,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('activity_structures');
+        Schema::dropIfExists('sub_roles');
         Schema::dropIfExists('student_activities');
         Schema::dropIfExists('proposals');
     }

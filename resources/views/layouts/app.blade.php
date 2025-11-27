@@ -7,7 +7,7 @@
     <title>Portal Siswa</title>
     <!-- Ensure Bootstrap 5 CSS is loaded -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         /* Custom Sidebar Styling */
         .sidebar-link {
@@ -166,12 +166,31 @@
                 🎓 Portal Siswa
             </a>
 
-            <!-- Profile Picture -->
-            <div class="profile-pic-container">
-                <a href="{{ route('siswa.profile') }}">
-                    <img src="https://avatar.iran.liara.run/public/1" width="40" height="40" alt="Profile"
-                        class="profile-pic">
+            <div class="d-flex align-items-center">
+
+                <!-- A. Mail Icon -->
+                {{-- Make sure the route matches what you defined in web.php --}}
+                <a href="{{ route('siswa.invites.index') }}" class="me-3 text-secondary position-relative">
+                    <i class="bi bi-envelope fs-4"></i>
+
+
+                    {{-- Optional: Add a red dot if you want to show 'unread' status later --}}
+                    {{--
+                    <span
+                        class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                        <span class="visually-hidden">New alerts</span>
+                    </span>
+                    --}}
                 </a>
+
+                <!-- B. Profile Picture -->
+                <div class="profile-pic-container">
+                    <a href="{{ route('siswa.profile') }}">
+                        <img src="https://avatar.iran.liara.run/public/1" width="40" height="40" alt="Profile"
+                            class="profile-pic">
+                    </a>
+                </div>
+
             </div>
         </div>
     </nav>
