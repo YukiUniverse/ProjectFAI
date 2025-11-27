@@ -35,12 +35,7 @@ class DatabaseSeeder extends Seeder
             ['student_role_id' => 4, 'role_code' => 'COOR', 'role_name' => 'Coordinator'], // Koordinator
         ]);
 
-        DB::table('sub_roles')->insert([
-            ['sub_role_id' => 1, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
-            ['sub_role_id' => 2, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Acara', 'sub_role_name_en' => 'Event'],
-            ['sub_role_id' => 3, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Media', 'sub_role_name_en' => 'Media'],
-            ['sub_role_id' => 4, 'sub_role_code' => 'SR04', 'sub_role_name' => 'Logistik', 'sub_role_name_en' => 'Logistics'],
-        ]);
+
 
         // ==========================================
         // PHASE 2: USERS (10 Students, 5 Lecturers)
@@ -135,13 +130,12 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ==========================================
-        // PHASE 4: ACTIVITIES & STRUCTURES
+        // PHASE 4: ACTIVITIES, SUB-ROLES & STRUCTURES
         // ==========================================
 
-        // --- ACTIVITY 1: ACTIVE (Tech Summit) ---
-        // Leader: Iris (1)
-        // Status: Active
-        // Members: 5 Total (Lead, Sec, Coor Acara, Coor Media, Member Logistik)
+        // ------------------------------------------
+        // ACTIVITY 1: TECH SUMMIT (Active)
+        // ------------------------------------------
 
         $act1 = DB::table('student_activities')->insertGetId([
             'proposal_id' => $prop1,
@@ -156,23 +150,27 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
         ]);
 
+        // Sub Roles for ACT001 (IDs 1-4)
+        DB::table('sub_roles')->insert([
+            ['sub_role_id' => 1, 'student_activity_id' => $act1, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
+            ['sub_role_id' => 2, 'student_activity_id' => $act1, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Acara', 'sub_role_name_en' => 'Event'],
+            ['sub_role_id' => 3, 'student_activity_id' => $act1, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Media', 'sub_role_name_en' => 'Media'],
+            ['sub_role_id' => 4, 'student_activity_id' => $act1, 'sub_role_code' => 'SR04', 'sub_role_name' => 'Logistik', 'sub_role_name_en' => 'Logistics'],
+        ]);
+
+        // Structure for ACT001 (Using SubRole IDs 1-4)
         DB::table('activity_structures')->insert([
-            // 1. Leader (Iris - S1)
             ['student_activity_id' => $act1, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 1, 'structure_name' => 'Project Manager', 'structure_points' => 0, 'created_at' => now()],
-            // 2. Secretary (Nina - S5)
             ['student_activity_id' => $act1, 'student_id' => 5, 'student_role_id' => 2, 'sub_role_id' => 1, 'structure_name' => 'Main Secretary', 'structure_points' => 0, 'created_at' => now()],
-            // 3. Coordinator Acara (Mateo - S2)
             ['student_activity_id' => $act1, 'student_id' => 2, 'student_role_id' => 4, 'sub_role_id' => 2, 'structure_name' => 'Head of Event', 'structure_points' => 0, 'created_at' => now()],
-            // 4. Coordinator Media (Sora - S3)
             ['student_activity_id' => $act1, 'student_id' => 3, 'student_role_id' => 4, 'sub_role_id' => 3, 'structure_name' => 'Head of Media', 'structure_points' => 0, 'created_at' => now()],
-            // 5. Member Logistik (Arlo - S6)
             ['student_activity_id' => $act1, 'student_id' => 6, 'student_role_id' => 3, 'sub_role_id' => 4, 'structure_name' => 'Logistics Staff', 'structure_points' => 0, 'created_at' => now()],
         ]);
 
-        // --- ACTIVITY 2: FINISHED (Art Gala) ---
-        // Leader: Iris (1) - SAME AS ABOVE
-        // Status: Finished
-        // Has Ratings & Final Points
+
+        // ------------------------------------------
+        // ACTIVITY 2: ART GALA (Finished)
+        // ------------------------------------------
 
         $act2 = DB::table('student_activities')->insertGetId([
             'proposal_id' => $prop2,
@@ -187,25 +185,31 @@ class DatabaseSeeder extends Seeder
             'created_at' => now()->subMonths(3),
         ]);
 
-        DB::table('activity_structures')->insert([
-            // Leader Iris (100% Score)
-            ['student_activity_id' => $act2, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 1, 'structure_name' => 'Director', 'structure_points' => 200, 'final_point_percentage' => 100, 'final_review' => 'Perfect execution', 'created_at' => now()],
-            // Coor Acara Finn (S8) (80% Score)
-            ['student_activity_id' => $act2, 'student_id' => 8, 'student_role_id' => 4, 'sub_role_id' => 2, 'structure_name' => 'Event Coor', 'structure_points' => 150, 'final_point_percentage' => 80, 'final_review' => 'Good but late sometimes', 'created_at' => now()],
-            // Member Gwen (S9) (50% Score)
-            ['student_activity_id' => $act2, 'student_id' => 9, 'student_role_id' => 3, 'sub_role_id' => 4, 'structure_name' => 'Staff', 'structure_points' => 100, 'final_point_percentage' => 50, 'final_review' => 'Rarely attended', 'created_at' => now()],
+        // Sub Roles for ACT002 (IDs 5-8)
+        DB::table('sub_roles')->insert([
+            ['sub_role_id' => 5, 'student_activity_id' => $act2, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
+            ['sub_role_id' => 6, 'student_activity_id' => $act2, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Acara', 'sub_role_name_en' => 'Event'],
+            ['sub_role_id' => 7, 'student_activity_id' => $act2, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Publikasi', 'sub_role_name_en' => 'Publication'], // Different name for variety
+            ['sub_role_id' => 8, 'student_activity_id' => $act2, 'sub_role_code' => 'SR04', 'sub_role_name' => 'Logistik', 'sub_role_name_en' => 'Logistics'],
         ]);
 
-        // Add Ratings for Activity 2
+        // Structure for ACT002 (Using SubRole IDs 5-8)
+        DB::table('activity_structures')->insert([
+            ['student_activity_id' => $act2, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 5, 'structure_name' => 'Director', 'structure_points' => 200, 'final_point_percentage' => 100, 'final_review' => 'Perfect', 'created_at' => now()],
+            ['student_activity_id' => $act2, 'student_id' => 8, 'student_role_id' => 4, 'sub_role_id' => 6, 'structure_name' => 'Event Coor', 'structure_points' => 150, 'final_point_percentage' => 80, 'final_review' => 'Good', 'created_at' => now()],
+            ['student_activity_id' => $act2, 'student_id' => 9, 'student_role_id' => 3, 'sub_role_id' => 8, 'structure_name' => 'Staff', 'structure_points' => 100, 'final_point_percentage' => 50, 'final_review' => 'Absent', 'created_at' => now()],
+        ]);
+
+        // Ratings for Act 2
         DB::table('student_ratings')->insert([
-            ['student_activity_id' => $act2, 'rater_student_id' => 8, 'rated_student_id' => 1, 'stars' => 4, 'reason' => 'Great leader', 'created_at' => now()],
+            ['student_activity_id' => $act2, 'rater_student_id' => 8, 'rated_student_id' => 1, 'stars' => 5, 'reason' => 'Great leader', 'created_at' => now()],
             ['student_activity_id' => $act2, 'rater_student_id' => 1, 'rated_student_id' => 8, 'stars' => 4, 'reason' => 'Good work', 'created_at' => now()],
         ]);
 
-        // --- ACTIVITY 3: PREPARATION / BLANK (Esports Cup) ---
-        // Leader: Riku (4)
-        // Status: Preparation
-        // 1 Leader, 1 Coordinator
+
+        // ------------------------------------------
+        // ACTIVITY 3: ESPORTS CUP (Preparation)
+        // ------------------------------------------
 
         $act3 = DB::table('student_activities')->insertGetId([
             'proposal_id' => $prop3,
@@ -220,17 +224,22 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
         ]);
 
-        DB::table('activity_structures')->insert([
-            // Leader Riku
-            ['student_activity_id' => $act3, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 1, 'structure_name' => 'Chief', 'structure_points' => 0, 'created_at' => now()],
-            // Coor Lila (S7)
-            ['student_activity_id' => $act3, 'student_id' => 7, 'student_role_id' => 4, 'sub_role_id' => 2, 'structure_name' => 'Game Master', 'structure_points' => 0, 'created_at' => now()],
+        // Sub Roles for ACT003 (IDs 9-10) - Smaller structure
+        DB::table('sub_roles')->insert([
+            ['sub_role_id' => 9, 'student_activity_id' => $act3, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
+            ['sub_role_id' => 10, 'student_activity_id' => $act3, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Kompetisi', 'sub_role_name_en' => 'Competition'],
         ]);
 
-        // --- ACTIVITY 4: OPEN RECRUITMENT (Music Fest) ---
-        // Leader: Miles (10)
-        // Status: Open Recruitment
-        // 0 Registrations
+        // Structure for ACT003 (Using SubRole IDs 9-10)
+        DB::table('activity_structures')->insert([
+            ['student_activity_id' => $act3, 'student_id' => 4, 'student_role_id' => 1, 'sub_role_id' => 9, 'structure_name' => 'Chief', 'structure_points' => 0, 'created_at' => now()],
+            ['student_activity_id' => $act3, 'student_id' => 7, 'student_role_id' => 4, 'sub_role_id' => 10, 'structure_name' => 'Game Master', 'structure_points' => 0, 'created_at' => now()],
+        ]);
+
+
+        // ------------------------------------------
+        // ACTIVITY 4: MUSIC FEST (Open Recruitment)
+        // ------------------------------------------
 
         $act4 = DB::table('student_activities')->insertGetId([
             'proposal_id' => $prop4,
@@ -245,15 +254,51 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
         ]);
 
-        // Structure: Only Leader exists so far
-        DB::table('activity_structures')->insert([
-            ['student_activity_id' => $act4, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 1, 'structure_name' => 'Project Lead', 'structure_points' => 0, 'created_at' => now()],
+        // Sub Roles for ACT004 (IDs 11-13)
+        DB::table('sub_roles')->insert([
+            ['sub_role_id' => 11, 'student_activity_id' => $act4, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
+            ['sub_role_id' => 12, 'student_activity_id' => $act4, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Artis', 'sub_role_name_en' => 'Artist Liaison'],
+            ['sub_role_id' => 13, 'student_activity_id' => $act4, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Produksi', 'sub_role_name_en' => 'Production'],
         ]);
 
-        // Questions for Open Recruitment (so it's functional)
+        // Structure (Only Leader exists in BPH - ID 11)
+        DB::table('activity_structures')->insert([
+            ['student_activity_id' => $act4, 'student_id' => 10, 'student_role_id' => 1, 'sub_role_id' => 11, 'structure_name' => 'Project Lead', 'structure_points' => 0, 'created_at' => now()],
+        ]);
+
+        // Questions linked to specific sub_roles (IDs 12 & 13)
         DB::table('recruitment_questions')->insert([
-            ['student_activity_id' => $act4, 'sub_role_id' => 2, 'question' => 'Why do you like music?'],
-            ['student_activity_id' => $act4, 'sub_role_id' => 3, 'question' => 'Can you edit videos?'],
+            ['student_activity_id' => $act4, 'sub_role_id' => 12, 'question' => 'Why do you like music?'],
+            ['student_activity_id' => $act4, 'sub_role_id' => 13, 'question' => 'Can you edit videos?'],
+        ]);
+
+        DB::table('mail_invites')->insert([
+            'student_number' => '241000007', // Lila
+            'student_activity_id' => 4, // Music Festival
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // 2. Accepted Invite:
+        // Invite 'Finn Balor' (241000008) to 'Tech Summit' (Activity 1)
+        // Assume he accepted but hasn't been processed into structure yet
+        DB::table('mail_invites')->insert([
+            'student_number' => '241000008', // Finn
+            'student_activity_id' => 1, // Tech Summit
+            'status' => 'accept',
+            'created_at' => now()->subDays(1),
+            'updated_at' => now(),
+        ]);
+
+        // 3. Declined Invite:
+        // Invite 'Gwen Stacy' (241000009) to 'Esports Cup' (Activity 3)
+        DB::table('mail_invites')->insert([
+            'student_number' => '241000009', // Gwen
+            'student_activity_id' => 3, // Esports Cup
+            'status' => 'decline',
+            'created_at' => now()->subDays(2),
+            'updated_at' => now()->subDays(2),
         ]);
 
         // NO registrations inserted for Act 4.

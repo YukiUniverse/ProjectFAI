@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MailInviteController;
 use App\Http\Controllers\OpenRecruitmentController;
 use App\Http\Controllers\PanitiaController;
 use App\Http\Controllers\ScheduleController;
@@ -64,6 +65,9 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::delete('/panitia/delete-schedule/{id}', [ScheduleController::class, 'destroy'])->name('siswa.jadwal-delete');
     // Riwayat umum
     Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
+
+    Route::get('/invitations', [MailInviteController::class, 'index'])->name('siswa.invites.index');
+    Route::post('/invitations/{id}', [MailInviteController::class, 'respond'])->name('siswa.invites.respond');
 });
 
 /*
@@ -74,7 +78,7 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-// Proposal
+    // Proposal
     Route::get('/proposal', [AdminController::class, 'proposalList'])->name('proposal-list');
     Route::post('/proposal/{id}/verify', [AdminController::class, 'verifyProposal'])->name('proposal-verify');
 
@@ -83,9 +87,9 @@ Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')
     Route::get('/acara/{activityCode}/panitia', [AdminController::class, 'panitiaDetail'])->name('panitia-detail');
 
     // Laporan 
-    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan'); 
+    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
     // Resulting Name: 'admin.laporan' <--- This fixes your error
-    
+
     Route::get('/laporan/detail/{activityCode}', [AdminController::class, 'laporanDetail'])->name('laporan-detail');
     Route::get('/history-pendaftaran', [AdminController::class, 'historyPendaftaran'])->name('history-pendaftaran');
 });

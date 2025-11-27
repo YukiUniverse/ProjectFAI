@@ -59,14 +59,6 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        // 6. Sub Roles (Paten)
-        Schema::create('sub_roles', function (Blueprint $table) {
-            $table->increments('sub_role_id');
-            $table->string('sub_role_code', 10)->unique();
-            $table->string('sub_role_name', 255);
-            $table->string('sub_role_name_en', 255)->nullable();
-            $table->timestamps();
-        });
 
         // 7. Users (Login System)
         Schema::create('users', function (Blueprint $table) {
@@ -101,7 +93,6 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('sub_roles');
         Schema::dropIfExists('student_roles');
         Schema::dropIfExists('lecturers');
         Schema::dropIfExists('students');
