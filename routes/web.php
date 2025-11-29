@@ -68,6 +68,23 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 
     Route::get('/invitations', [MailInviteController::class, 'index'])->name('siswa.invites.index');
     Route::post('/invitations/{id}', [MailInviteController::class, 'respond'])->name('siswa.invites.respond');
+    // Route untuk mencari mahasiswa berdasarkan NIM (AJAX)
+    Route::get('/api/search-student', [MailInviteController::class, 'searchStudent'])
+    ->name('api.search-student');
+    // Route untuk Simpan Divisi Baru
+    Route::post('/panitia/subrole-store/{activityCode}', [App\Http\Controllers\PanitiaController::class, 'storeSubRole'])
+    ->name('siswa.panitia-subrole-store');
+
+// Route untuk menyimpan undangan (Invite)
+    Route::post('/panitia/invite-member/{activityCode}', [MailInviteController::class, 'storeInvite'])
+    ->name('siswa.panitia-invite');
+    // Route untuk Update Divisi (Edit)
+    Route::put('/panitia/subrole-update/{id}', [PanitiaController::class, 'updateDivision'])
+    ->name('siswa.panitia-subrole-update');
+    Route::delete('/panitia/subrole-delete/{id}', [PanitiaController::class, 'deleteDivision'])
+    ->name('siswa.panitia-subrole-delete');
+    Route::delete('/panitia/kick/{structureId}', [App\Http\Controllers\PanitiaController::class, 'kickMember'])
+    ->name('siswa.panitia-kick');
 });
 
 /*

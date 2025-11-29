@@ -29,6 +29,28 @@ class PanitiaController extends Controller
         return view('siswa.profile');
     }
 
+    /**
+     * [BARU] Simpan Sub Role / Divisi Baru
+     */
+    public function storeSubRole(Request $request, $activityCode)
+    {
+        $request->validate([
+            'sub_role_name' => 'required|string|max:255',
+            'sub_role_code' => 'required|string|max:10|unique:sub_roles,sub_role_code', // Pastikan kode unik
+        ]);
+
+        $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
+
+        SubRole::create([
+            'student_activity_id' => $activity->student_activity_id,
+            'sub_role_name'       => $request->sub_role_name,
+            'sub_role_name_en'    => $request->sub_role_name_en, // Opsional
+            'sub_role_code'       => strtoupper($request->sub_role_code),
+        ]);
+
+        return back()->with('success', 'Divisi baru berhasil dibuat!');
+    }
+
     public function daftarAcara()
     {
         $studentId = Auth::user()->student->student_id;
@@ -151,35 +173,101 @@ class PanitiaController extends Controller
             }
         ])->get();
         $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
-        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles', 'listPendaftar'));
+        // [UPDATE] Ambil SubRole KHUSUS untuk Activity ini (Bukan All Global)
+        // Agar di tab "Divisi" yang muncul hanya divisi milik acara ini
+        $activitySubRoles = SubRole::where('student_activity_id', $activity->student_activity_id)->get();
+
+        // (Opsional) Jika tab struktur butuh list global, bisa tetap pakai SubRole::all(), 
+        // tapi sebaiknya gunakan yang spesifik activity juga.
+        $subRoles = $activitySubRoles; 
+
+        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles', 'listPendaftar','activitySubRoles','subRoles'));
+    }
+
+    public function kickMember($structureId)
+    {
+        // Cari data di tabel struktur
+        $member = ActivityStructure::with('role')->findOrFail($structureId);
+
+        // Security Check: Jangan sampai Ketua dikeluarkan
+        if ($member->role && $member->role->role_name === 'Team Lead') {
+            return back()->with('error', 'Ketua Panitia tidak dapat dikeluarkan.');
+        }
+
+        // Hapus (Pastikan Model ActivityStructure menggunakan SoftDeletes)
+        $member->delete();
+
+        return back()->with('success', 'Anggota berhasil dikeluarkan dari kepanitiaan.');
     }
 
     public function updateStructure(Request $request, $activityCode)
     {
-        // Validasi
+        // 1. Validasi Input
         $request->validate([
             'updates' => 'required|array',
         ]);
 
         DB::beginTransaction();
         try {
-            // Loop setiap data yang dikirim dari form
-            foreach ($request->updates as $structureId => $newRoleId) {
+            // 2. Loop setiap data yang dikirim dari form
+            foreach ($request->updates as $structureId => $data) {
+                
+                // Ambil Role ID (Jabatan)
+                $roleId = $data['role_id'];
 
-                // Update student_role_id di tabel activity_structures
+                // Ambil Sub Role ID (Divisi)
+                // Jika value kosong (pilih "-- Non-Divisi --" atau input hidden kosong dari Ketua), 
+                // simpan sebagai NULL di database.
+                $subRoleId = !empty($data['sub_role_id']) ? $data['sub_role_id'] : null;
+
+                // 3. Update Database
                 ActivityStructure::where('activity_structure_id', $structureId)
                     ->update([
-                        'student_role_id' => $newRoleId
+                        'student_role_id' => $roleId,
+                        'sub_role_id'     => $subRoleId
                     ]);
             }
 
             DB::commit();
-            return back()->with('success', 'Struktur kepanitiaan berhasil diperbarui!');
+            return back()->with('success', 'Struktur kepanitiaan (Divisi & Jabatan) berhasil diperbarui!');
 
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal memperbarui struktur: ' . $e->getMessage());
         }
+    }
+
+    public function updateDivision(Request $request, $id)
+    {
+        // 1. Validasi Input
+        $request->validate([
+            'sub_role_name' => 'required|string|max:255',
+            'sub_role_code' => 'required|string|max:10|unique:sub_roles,sub_role_code,' . $id . ',sub_role_id',
+        ]);
+
+        // 2. Ambil Data
+        $subRole = SubRole::findOrFail($id);
+        
+        // 3. Update
+        $subRole->update([
+            'sub_role_name'    => $request->sub_role_name,
+            'sub_role_name_en' => $request->sub_role_name_en,
+            'sub_role_code'    => strtoupper($request->sub_role_code),
+        ]);
+
+        return back()->with('success', 'Divisi berhasil diperbarui!');
+    }
+
+    /**
+     * Hapus Divisi (Soft Delete)
+     * Pastikan Model SubRole menggunakan Trait SoftDeletes dan tabel memiliki kolom deleted_at
+     */
+    public function deleteDivision($id)
+    {
+        $subRole = SubRole::findOrFail($id);
+        $subRole->delete(); // Soft delete
+
+        return back()->with('success', 'Divisi berhasil dihapus.');
     }
 
     public function updateStatus(Request $request, $activityCode)

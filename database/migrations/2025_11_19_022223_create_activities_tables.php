@@ -51,6 +51,7 @@ return new class extends Migration {
             $table->string('sub_role_name', 255);
             $table->string('sub_role_name_en', 255)->nullable();
             $table->timestamps();
+            $table->softDeletes();
             $table->foreign('student_activity_id')->references('student_activity_id')->on('student_activities');
         });
 
@@ -59,7 +60,7 @@ return new class extends Migration {
             $table->increments('activity_structure_id');
             $table->unsignedInteger('student_activity_id');
             $table->unsignedInteger('student_id');
-            $table->unsignedInteger('student_role_id');
+            $table->unsignedInteger('student_role_id')->nullable();
             $table->unsignedInteger('sub_role_id')->nullable();
             $table->string('structure_name', 255)->nullable();
             $table->integer('structure_points')->nullable();
@@ -67,6 +68,7 @@ return new class extends Migration {
             // Kolom tambahan untuk Step 4 (Grading)
             $table->float('final_point_percentage')->default(100); // Default 100%
             $table->text('final_review')->nullable(); // Review ketua
+            $table->softDeletes();
 
             $table->timestamps();
 

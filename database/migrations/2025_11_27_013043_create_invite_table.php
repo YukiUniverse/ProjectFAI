@@ -10,30 +10,30 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('mail_invites', function (Blueprint $table) {
+       Schema::create('mail_invites', function (Blueprint $table) {
             $table->id();
-
-            // Foreign Key to Student Number (String)
-            // Note: Ensure 'student_number' in 'students' table is indexed or unique
-            $table->string('student_number')->nullable();
+            
+            // PERBAIKAN: Ubah menjadi string agar cocok dengan tabel 'students'
+            // Foreign Key harus sama persis tipe datanya dengan tabel induk
+            $table->string('student_number'); 
+            
             $table->unsignedInteger('student_activity_id');
-
-
-            $table->foreign('student_number')
-                ->references('student_number') // Kolom di tabel students
-                ->on('students')
-                ->onDelete('cascade');
-
-            // Foreign Key to Activity
-            $table->foreign('student_activity_id')
-                ->references('student_activity_id') // Adjust if your PK is just 'id'
-                ->on('student_activities')
-                ->onDelete('cascade');
-
-            // Status Enum
+            
+            // Update enum values to match your application logic ('accept' instead of 'accepted')
             $table->enum('status', ['pending', 'accept', 'decline'])->default('pending');
-
             $table->timestamps();
+
+            // Foreign Key ke Student Number
+            $table->foreign('student_number')
+                  ->references('student_number')
+                  ->on('students')
+                  ->onDelete('cascade');
+
+            // Foreign Key ke Activity
+            $table->foreign('student_activity_id')
+                  ->references('student_activity_id')
+                  ->on('student_activities')
+                  ->onDelete('cascade');
         });
     }
 

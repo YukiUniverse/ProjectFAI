@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ActivityStructure extends Model
 {
+    use SoftDeletes;
     protected $primaryKey = 'activity_structure_id';
+    
 
     protected $fillable = [
         'student_activity_id',

@@ -166,8 +166,8 @@
                         @foreach ($panitia as $p)
                             <tr>
                                 <td>{{ $p->student->full_name}}</td>
-                                <td>{{ $p->role->role_name }}</td>
-                                <td>{{ $p->subRole->sub_role_name_en }}</td>
+                                <td>{{ $p->role->role_name ?? "" }}</td>
+                                <td>{{ $p->subRole->sub_role_name_en ?? ""}}</td>
                             </tr>
 
                         @endforeach
