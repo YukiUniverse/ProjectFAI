@@ -138,6 +138,17 @@ class PanitiaController extends Controller
             ->orderBy('start_time', 'asc')
             ->get();
         $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
+
+        if ($activity->status == "preparation") {
+            $listDivisi = SubRole::all();
+            $activitySubRoles = SubRole::where('student_activity_id', $activity->student_activity_id)->get();
+            $panitiaList = ActivityStructure::with(['student', 'role', 'subRole'])
+            ->where('student_activity_id', $activity->student_activity_id)
+            ->get();
+            $subRoles = $activitySubRoles; 
+            $roles = StudentRole::all();
+            return view('siswa.preparation.dashboard', compact('activity', 'panitia', 'jadwal', 'existingRatings', 'listDivisi','activitySubRoles','panitiaList','subRoles','roles'));
+        }
         return view('siswa.panitia-detail', compact('activity', 'panitia', 'jadwal', 'existingRatings'));
     }
     public function panitiaChat()

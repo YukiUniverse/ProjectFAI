@@ -119,7 +119,7 @@ class MailInviteController extends Controller
         // Jika status sebelumnya 'decline', query ini tidak akan menemukannya (false), sehingga bisa di-invite lagi.
         $existingInvite = MailInvite::where('student_number', $student->student_number) 
             ->where('student_activity_id', $activity->student_activity_id)
-            ->whereIn('status', ['pending', 'accept']) 
+            ->whereIn('status', ['pending']) 
             ->exists();
 
         // 4. CEK MEMBER AKTIF

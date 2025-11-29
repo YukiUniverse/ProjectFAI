@@ -167,7 +167,7 @@
                             <tr>
                                 <td>{{ $p->student->full_name}}</td>
                                 <td>{{ $p->role->role_name ?? "" }}</td>
-                                <td>{{ $p->subRole->sub_role_name_en ?? ""}}</td>
+                                <td>{{ $p->subRole->sub_role_name ?? ""}}</td>
                             </tr>
 
                         @endforeach
@@ -213,7 +213,7 @@
                                             <br><span class="badge bg-success" style="font-size: 0.7em">Sudah Dinilai</span>
                                         @endif --}}
                                     </td>
-                                    <td>{{ $p->role->role_name }}</td>
+                                    <td>{{ $p->role->role_name ?? "-" }}</td>
                                     <td>{{ $p->subRole->sub_role_name_en ?? '-' }}</td>
                                     
                                     <td class="text-center">
