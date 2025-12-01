@@ -232,7 +232,7 @@ class DatabaseSeeder extends Seeder
 
         // Structure for ACT003 (Using SubRole IDs 9-10)
         DB::table('activity_structures')->insert([
-            ['student_activity_id' => $act3, 'student_id' => 4, 'student_role_id' => 1, 'sub_role_id' => 9, 'structure_name' => 'Chief', 'structure_points' => 0, 'created_at' => now()],
+            ['student_activity_id' => $act3, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 9, 'structure_name' => 'Chief', 'structure_points' => 0, 'created_at' => now()],
             ['student_activity_id' => $act3, 'student_id' => 7, 'student_role_id' => 4, 'sub_role_id' => 10, 'structure_name' => 'Game Master', 'structure_points' => 0, 'created_at' => now()],
         ]);
 
