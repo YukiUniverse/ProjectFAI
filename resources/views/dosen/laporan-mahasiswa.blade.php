@@ -1,48 +1,42 @@
-@extends('layouts.dosen') {{-- Sesuaikan layout Anda --}}
+@extends('layouts.dosen')
+@section('title', 'Laporan Mahasiswa')
 @section('content')
 
-<h3 class="mb-4">📊 Laporan KPI Mahasiswa</h3>
+<h3>🎓 Laporan Per Mahasiswa</h3>
+<p class="text-muted">Cari mahasiswa untuk melihat riwayat keaktifan mereka.</p>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <table class="table table-hover align-middle">
-            <thead class="table-primary text-center">
-                <tr>
-                    <th>NIM</th>
-                    <th>Nama Mahasiswa</th>
-                    <th>Jurusan</th>
-                    <th>Rata-rata Rating (KPI)</th>
-                    <th>Predikat</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($students as $s)
-                <tr>
-                    <td class="text-center">{{ $s->student_number }}</td>
-                    <td>{{ $s->full_name }}</td>
-                    <td>{{ $s->department->department_name ?? '-' }}</td>
-                    
-                    <td class="text-center fw-bold text-primary">
-                        @if($s->kpi_score !== 'Belum Ada')
-                            ⭐ {{ $s->kpi_score }}
-                        @else
-                            <span class="text-muted small">Belum ada data</span>
-                        @endif
-                    </td>
-                    
-                    <td class="text-center">
-                        @if($s->predikat == 'Sangat Baik') <span class="badge bg-success">Sangat Baik</span>
-                        @elseif($s->predikat == 'Baik') <span class="badge bg-info">Baik</span>
-                        @elseif($s->predikat == 'Cukup') <span class="badge bg-warning">Cukup</span>
-                        @else <span class="badge bg-secondary">-</span>
-                        @endif
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white">
+        <input type="text" id="searchTable" class="form-control" placeholder="Cari nama atau NRP...">
+    </div>
+    <div class="card-body p-0">
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-hover mb-0" id="dataTable">
+                <thead class="table-success sticky-top">
+                    <tr>
+                        <th>NRP</th>
+                        <th>Nama Lengkap</th>
+                        <th>Jurusan</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($students as $s)
+                    <tr>
+                        <td>{{ $s->student_number }}</td>
+                        <td>{{ $s->full_name }}</td>
+                        <td>{{ $s->department->department_name ?? '-' }}</td>
+                        <td>
+                            <a href="{{ route('dosen.laporan-mahasiswa-detail', $s->student_id) }}" class="btn btn-sm btn-outline-success">Lihat Riwayat</a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
 {{-- TAMBAHAN FITUR SORTING --}}
 <style>
     /* Indikator cursor */
@@ -101,6 +95,15 @@
                 // Masukkan kembali baris yang sudah diurutkan ke tabel
                 tbody.append(...rows);
             });
+        });
+    });
+
+    document.getElementById('searchTable').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#dataTable tbody tr');
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
         });
     });
 </script>

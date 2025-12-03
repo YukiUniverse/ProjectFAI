@@ -63,5 +63,65 @@
         </table>
     </div>
 </div>
+{{-- TAMBAHAN FITUR SORTING --}}
+<style>
+    /* Indikator cursor */
+    th { cursor: pointer; position: relative; user-select: none; }
+    th:hover { background-color: #f8f9fa; }
+    
+    /* Ikon Panah Default (Netral) */
+    th::after { content: ' ⇅'; opacity: 0.2; float: right; font-size: 0.8em; }
+    
+    /* Ikon Panah Aktif */
+    th.asc::after { content: ' ▲'; opacity: 1; color: #198754; }
+    th.desc::after { content: ' ▼'; opacity: 1; color: #198754; }
+</style>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ambil semua header tabel di halaman ini
+        const headers = document.querySelectorAll('th');
+
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const table = header.closest('table');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const index = Array.from(header.parentNode.children).indexOf(header);
+                
+                // Cek status sorting saat ini (asc atau desc)
+                const isAsc = header.classList.contains('asc');
+                
+                // Reset semua header di tabel ini
+                table.querySelectorAll('th').forEach(th => th.classList.remove('asc', 'desc'));
+                
+                // Set status baru
+                if (isAsc) {
+                    header.classList.remove('asc');
+                    header.classList.add('desc');
+                } else {
+                    header.classList.remove('desc');
+                    header.classList.add('asc');
+                }
+
+                // Logika Sorting
+                rows.sort((rowA, rowB) => {
+                    const cellA = rowA.children[index].innerText.trim();
+                    const cellB = rowB.children[index].innerText.trim();
+
+                    // Cek apakah isinya angka
+                    const valA = isNaN(cellA) ? cellA : parseFloat(cellA);
+                    const valB = isNaN(cellB) ? cellB : parseFloat(cellB);
+
+                    if (valA < valB) return isAsc ? 1 : -1;
+                    if (valA > valB) return isAsc ? -1 : 1;
+                    return 0;
+                });
+
+                // Masukkan kembali baris yang sudah diurutkan ke tabel
+                tbody.append(...rows);
+            });
+        });
+    });
+</script>
 @endsection

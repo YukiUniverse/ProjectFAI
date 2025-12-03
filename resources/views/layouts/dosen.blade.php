@@ -15,26 +15,33 @@
     </style>
 </head>
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-light sticky-top">
-    <div class="container-fluid">
-        <span class="navbar-brand fw-bold " style="color:#198754;">Portal Siswa</span>
-    </div>
-</nav>
-
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar p-3">
-            <h5 class="fw-bold mb-3">Dosen Panel</h5>
-            <a href="{{ route('dosen.dashboard') }}" class="{{ request()->is('dosen/dashboard') ? 'active' : '' }}">🏠 Dashboard</a>
-            <a href="{{ route('dosen.laporan-kpi') }}" class="{{ request()->is('dosen/laporan-kpi') ? 'active' : '' }}">📊 Laporan KPI</a>
-            <a href="{{ route('login') }}">🚪 Logout</a>
+            <h5 class="fw-bold mb-4 text-white">🎓 Dosen Panel</h5>
+            
+            <a href="{{ route('dosen.dashboard') }}" class="{{ request()->routeIs('dosen.dashboard') ? 'active' : '' }}">🏠 Dashboard</a>
+            
+            <hr class="text-white-50">
+            <small class="text-uppercase text-white-50 ms-2 fw-bold" style="font-size: 0.75rem;">Laporan & Monitoring</small>
+            
+            <a href="{{ route('dosen.laporan-acara') }}" class="{{ request()->routeIs('dosen.laporan-acara*') ? 'active' : '' }}">📅 Laporan Acara</a>
+            <a href="{{ route('dosen.laporan-mahasiswa') }}" class="{{ request()->routeIs('dosen.laporan-mahasiswa*') ? 'active' : '' }}">🎓 Laporan Mahasiswa</a>
+            <a href="{{ route('dosen.laporan-kpi') }}" class="{{ request()->routeIs('dosen.laporan-kpi') ? 'active' : '' }}">📊 Laporan KPI</a>
+            
+            <hr class="text-white-50">
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="btn btn-link w-100 text-start text-white text-decoration-none ps-3">🚪 Logout</button>
+            </form>
         </div>
         <div class="col-md-10 content">
             @yield('content')
         </div>
     </div>
 </div>
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
@@ -46,51 +53,3 @@
 
 
 
-{{-- <!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') | Dosen Pembimbing</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f9fafb;
-        }
-        .sidebar {
-            min-height: 100vh;
-            background-color: #198754;
-            color: white;
-            padding-top: 1rem;
-        }
-        .sidebar a {
-            color: white;
-            display: block;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 8px;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background-color: rgba(255,255,255,0.2);
-        }
-        .content {
-            padding: 2rem;
-        }
-    </style>
-</head>
-<body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 sidebar">
-       
-        </nav>
-
-        <!-- Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 content">
-            @yield('content')
-        </main>
-    </div>
-</div>
-</body>
-</html> --}}

@@ -95,7 +95,7 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-    // Proposal
+// Proposal
     Route::get('/proposal', [AdminController::class, 'proposalList'])->name('proposal-list');
     Route::post('/proposal/{id}/verify', [AdminController::class, 'verifyProposal'])->name('proposal-verify');
 
@@ -104,11 +104,12 @@ Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')
     Route::get('/acara/{activityCode}/panitia', [AdminController::class, 'panitiaDetail'])->name('panitia-detail');
 
     // Laporan 
-    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
+    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan'); 
     // Resulting Name: 'admin.laporan' <--- This fixes your error
-
+    
     Route::get('/laporan/detail/{activityCode}', [AdminController::class, 'laporanDetail'])->name('laporan-detail');
     Route::get('/history-pendaftaran', [AdminController::class, 'historyPendaftaran'])->name('history-pendaftaran');
+
 });
 
 /*
@@ -117,7 +118,13 @@ Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'check-role:lecturer'])->prefix('dosen')->name('dosen.')->group(function () {
-    Route::get('/dashboard', [DosenController::class, 'dashboard'])->name('dashboard');
+       Route::get('/dashboard', [DosenController::class, 'dashboard'])->name('dashboard');
     Route::get('/laporan-kpi', [DosenController::class, 'laporanKpi'])->name('laporan-kpi');
+
+    Route::get('/laporan-acara', [DosenController::class, 'laporanAcara'])->name('laporan-acara');
+    Route::get('/laporan-acara/{id}', [DosenController::class, 'laporanAcaraDetail'])->name('laporan-acara-detail');
+    
+    Route::get('/laporan-mahasiswa', [DosenController::class, 'laporanMahasiswa'])->name('laporan-mahasiswa');
+    Route::get('/laporan-mahasiswa/{id}', [DosenController::class, 'laporanMahasiswaDetail'])->name('laporan-mahasiswa-detail');
 });
 

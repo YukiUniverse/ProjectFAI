@@ -16,14 +16,37 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        // Hitung data real dari SQL
+        // 1. Statistik Utama
         $pendingProposals = Proposal::where('status', 'pending')->count();
         $activeActivities = StudentActivity::whereIn('status', ['active', 'preparation', 'open_recruitment'])->count();
         $totalStudents = Student::count();
 
-        return view('admin.dashboard', compact('pendingProposals', 'activeActivities', 'totalStudents'));
-    }
+        // 2. Data Tabel Log Pendaftaran (100 Terakhir)
+        $recentRegistrations = RecruitmentRegistration::with(['student', 'activityDetail', 'firstChoice'])
+            ->latest()
+            ->limit(100)
+            ->get();
 
+        // 3. Data Ringkasan KPI (5 Acara Terakhir yang Selesai) -- BARU
+        $kpiSummary = StudentActivity::where('status', 'finished')
+            ->orderBy('end_datetime', 'desc') // Urutkan dari yang baru selesai
+            ->take(5)
+            ->get();
+
+        // Hitung rata-rata rating untuk masing-masing acara
+        foreach ($kpiSummary as $act) {
+            $avg = StudentRating::where('student_activity_id', $act->student_activity_id)->avg('stars');
+            $act->avg_rating = $avg ? number_format($avg, 1) : 0;
+        }
+
+        return view('admin.dashboard', compact(
+            'pendingProposals', 
+            'activeActivities', 
+            'totalStudents', 
+            'recentRegistrations',
+            'kpiSummary' // <-- Kirim variabel baru ini
+        ));
+    }
     // --- PROPOSAL ---
     public function proposalList()
     {
