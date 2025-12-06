@@ -44,8 +44,14 @@ class OpenRecruitmentController extends Controller
 
             $h->kpi_score = $avgStars ? number_format($avgStars, 1) : 0;
         }
-        $allDivisions = SubRole::all();
+        // $allDivisions = SubRole::all();
         $previousDecisions = $currentStudent->decisions()->with('judge')->get();
+
+        $allDivisions = SubRole::join('activity_sub_roles', 'sub_roles.sub_role_id', '=', 'activity_sub_roles.sub_role_id')
+            ->where('activity_sub_roles.student_activity_id', $activity->student_activity_id)
+            ->whereNull('activity_sub_roles.deleted_at') // Cek Soft Delete (karena tabel pivot Anda pakai softDeletes)
+            ->select('sub_roles.*') // Hanya ambil kolom data divisi
+            ->get();
 
         return view(
             'siswa.oprec.detail-pendaftar',

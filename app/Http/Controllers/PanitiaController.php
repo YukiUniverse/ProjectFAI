@@ -79,7 +79,14 @@ class PanitiaController extends Controller
     public function formPendaftaran($studentActivityId)
     {
         $activity = StudentActivity::findOrFail($studentActivityId);
-        $divisi = SubRole::whereNot('sub_role_name', 'BPH')->get();
+        // $divisi = SubRole::whereNot('sub_role_name', 'BPH')->get();
+        $divisi = SubRole::join('activity_sub_roles', 'sub_roles.sub_role_id', '=', 'activity_sub_roles.sub_role_id')
+            ->where('activity_sub_roles.student_activity_id', $studentActivityId)
+            ->whereNull('activity_sub_roles.deleted_at') // Cek soft delete pivot
+            ->where('sub_roles.sub_role_name', '!=', 'BPH') // <--- Filter exclude BPH
+            ->select('sub_roles.*')
+            ->get();
+        
         return view('siswa.form-pendaftaran', compact('activity', 'divisi'));
     }
     public function daftarKepanitiaan(Request $request, $studentActivityId)
@@ -201,12 +208,23 @@ class PanitiaController extends Controller
         $listDivisi = SubRole::all();
         $roles = StudentRole::all();
         $studentActivityId = $activity->student_activity_id;
-        $listPertanyaanUntukDivisi = SubRole::with([
-            'activityQuestions' => function ($query) use ($studentActivityId) {
-                // This logic only affects the questions attached, not the SubRole itself
-                $query->where('student_activity_id', $studentActivityId);
-            }
-        ])->get();
+        // $listPertanyaanUntukDivisi = SubRole::with([
+        //     'activityQuestions' => function ($query) use ($studentActivityId) {
+        //         // This logic only affects the questions attached, not the SubRole itself
+        //         $query->where('student_activity_id', $studentActivityId);
+        //     }
+        // ])->get();
+        $listPertanyaanUntukDivisi = SubRole::join('activity_sub_roles', 'sub_roles.sub_role_id', '=', 'activity_sub_roles.sub_role_id')
+            ->where('activity_sub_roles.student_activity_id', $studentActivityId)
+            ->whereNull('activity_sub_roles.deleted_at') // Cek soft delete jika ada
+            ->with([
+                'activityQuestions' => function ($query) use ($studentActivityId) {
+                    // Filter pertanyaan agar spesifik ke acara ini juga
+                    $query->where('student_activity_id', $studentActivityId);
+                }
+            ])
+            ->select('sub_roles.*') // PENTING: Agar hasil query tetap berupa model SubRole (menghindari tumpang tindih ID)
+            ->get();
         $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
         
         // ==========================================
