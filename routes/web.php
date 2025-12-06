@@ -65,24 +65,25 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::delete('/panitia/delete-schedule/{id}', [ScheduleController::class, 'destroy'])->name('siswa.jadwal-delete');
     // Riwayat umum
     Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
+    Route::get('/activity/{activityCode}/members', [PanitiaController::class, 'showMembers'])->name('activity.members');
+    Route::get('/activity/{activityCode}/export', [PanitiaController::class, 'exportExcel'])->name('activity.export_excel');
 
     Route::get('/invitations', [MailInviteController::class, 'index'])->name('siswa.invites.index');
     Route::post('/invitations/{id}', [MailInviteController::class, 'respond'])->name('siswa.invites.respond');
     // Route untuk mencari mahasiswa berdasarkan NIM (AJAX)
     Route::get('/api/search-student', [MailInviteController::class, 'searchStudent'])
     ->name('api.search-student');
-    // Route untuk Simpan Divisi Baru
-    Route::post('/panitia/subrole-store/{activityCode}', [PanitiaController::class, 'storeSubRole'])
-    ->name('siswa.panitia-subrole-store');
+    // Route Tambah Divisi ke Acara (Pilih dari Master)
+    Route::post('/panitia/divisi-add/{activityCode}', [PanitiaController::class, 'storeActivitySubRole'])
+    ->name('siswa.panitia-divisi-add');
+
 
 // Route untuk menyimpan undangan (Invite)
     Route::post('/panitia/invite-member/{activityCode}', [MailInviteController::class, 'storeInvite'])
     ->name('siswa.panitia-invite');
-    // Route untuk Update Divisi (Edit)
-    Route::put('/panitia/subrole-update/{id}', [PanitiaController::class, 'updateDivision'])
-    ->name('siswa.panitia-subrole-update');
-    Route::delete('/panitia/subrole-delete/{id}', [PanitiaController::class, 'deleteDivision'])
-    ->name('siswa.panitia-subrole-delete');
+    // Route Hapus Divisi dari Acara
+    Route::delete('/panitia/divisi-delete/{id}', [PanitiaController::class, 'deleteActivitySubRole'])
+    ->name('siswa.panitia-divisi-delete');
     Route::delete('/panitia/kick/{structureId}', [PanitiaController::class, 'kickMember'])
     ->name('siswa.panitia-kick');
 });

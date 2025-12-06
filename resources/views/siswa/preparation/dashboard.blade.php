@@ -41,7 +41,7 @@
             <h5 class="fw-bold text-primary m-0">🧭 Fitur Pengurus Inti</h5>
             <small class="text-muted">Kelola kegiatan, struktur, dan penilaian panitia.</small>
         </div>
-        <a href="{{ route('siswa.panitia-detail', $activity->activity_code) }}" class="btn btn-outline-danger btn-sm">
+        <a href="{{ route('siswa.panitia-dashboard') }}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-arrow-left"></i> Kembali
         </a>
     </div>
@@ -149,117 +149,107 @@
         {{-- TAB 2: MANAJEMEN DIVISI (SUB ROLE) --}}
         <div class="tab-pane fade" id="divisi">
             <div class="row">
-                {{-- KOLOM KIRI: DAFTAR DIVISI --}}
+                
+                {{-- KOLOM KIRI: DAFTAR DIVISI YANG SUDAH ADA DI ACARA --}}
                 <div class="col-md-8">
                     <div class="card shadow-sm p-4 h-100">
-                        <h6 class="fw-bold text-primary mb-3">📂 Daftar Divisi Acara</h6>
+                        <h6 class="fw-bold text-primary mb-3">📂 Daftar Divisi Acara Ini</h6>
                         
-                        @if($activitySubRoles->count() > 0)
-                            <table class="table table-bordered table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Kode</th>
-                                        <th>Nama Divisi (ID)</th>
-                                        <th>Nama Divisi (EN)</th>
-                                        <th class="text-center">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($activitySubRoles as $div)
+                        @if($currentDivisions->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover align-middle">
+                                    <thead class="table-light">
                                         <tr>
-                                            <td><span class="badge bg-secondary">{{ $div->sub_role_code }}</span></td>
-                                            <td>{{ $div->sub_role_name }}</td>
-                                            <td>{{ $div->sub_role_name_en ?? '-' }}</td>
-                                            <td class="text-center">
-                                                {{-- Tombol Edit dengan Modal di dalam Loop --}}
-                                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ $div->sub_role_id }}">
-                                                    <i class="bi bi-pencil-square"></i>
-                                                </button>
-
-                                                {{-- Tombol Delete (Soft Delete) --}}
-                                                <form action="{{ route('siswa.panitia-subrole-delete', $div->sub_role_id) }}" 
-                                                    method="POST" 
-                                                    class="d-inline"
-                                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus divisi ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </form>
-
-                                                {{-- MODAL EDIT --}}
-                                                <div class="modal fade" id="editModal{{ $div->sub_role_id }}" tabindex="-1" aria-hidden="true">
-                                                    <div class="modal-dialog text-start">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header bg-warning text-dark">
-                                                                <h5 class="modal-title">✏️ Edit Divisi</h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <form action="{{ route('siswa.panitia-subrole-update', $div->sub_role_id) }}" method="POST">
-                                                                @csrf
-                                                                @method('PUT') 
-                                                                <div class="modal-body">
-                                                                    <div class="mb-3">
-                                                                        <label class="form-label fw-bold">Kode Divisi</label>
-                                                                        <input type="text" name="sub_role_code" class="form-control" value="{{ $div->sub_role_code }}" required maxlength="10">
-                                                                    </div>
-                                                                    <div class="mb-3">
-                                                                        <label class="form-label fw-bold">Nama Divisi (ID)</label>
-                                                                        <input type="text" name="sub_role_name" class="form-control" value="{{ $div->sub_role_name }}" required>
-                                                                    </div>
-                                                                    <div class="mb-3">
-                                                                        <label class="form-label fw-bold">Nama Divisi (EN)</label>
-                                                                        <input type="text" name="sub_role_name_en" class="form-control" value="{{ $div->sub_role_name_en }}">
-                                                                    </div>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {{-- END MODAL --}}
-                                            </td>
+                                            <th class="text-center" style="width: 15%">Kode</th>
+                                            <th>Nama Divisi (ID)</th>
+                                            <th>Nama Divisi (EN)</th>
+                                            <th class="text-center" style="width: 15%">Aksi</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($currentDivisions as $pivot)
+                                            <tr>
+                                                {{-- Akses data master via relasi subRole --}}
+                                                <td class="text-center">
+                                                    <span class="badge bg-secondary">
+                                                        {{ $pivot->subRole->sub_role_code }}
+                                                    </span>
+                                                </td>
+                                                <td class="fw-bold text-dark">{{ $pivot->subRole->sub_role_name }}</td>
+                                                <td class="text-muted">{{ $pivot->subRole->sub_role_name_en ?? '-' }}</td>
+                                                
+                                                <td class="text-center">
+                                                    {{-- Tombol Delete (Menghapus dari acara, bukan menghapus master) --}}
+                                                    <form action="{{ route('siswa.panitia-divisi-delete', $pivot->activity_sub_roles_id) }}" 
+                                                        method="POST" 
+                                                        class="d-inline"
+                                                        onsubmit="return confirm('Yakin ingin menghapus divisi {{ $pivot->subRole->sub_role_name }} dari acara ini?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus dari Acara">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         @else
-                            <div class="alert alert-info">
-                                Belum ada divisi yang dibuat. Silakan buat divisi baru di formulir sebelah kanan.
+                            <div class="alert alert-info border-info d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                                <div>
+                                    <strong>Belum ada divisi.</strong><br>
+                                    Silakan pilih divisi yang dibutuhkan dari formulir di sebelah kanan.
+                                </div>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                {{-- KOLOM KANAN: FORM TAMBAH --}}
+                {{-- KOLOM KANAN: FORM TAMBAH DIVISI (SELECT DARI MASTER) --}}
                 <div class="col-md-4">
                     <div class="card shadow-sm p-4 h-100 bg-light border-primary">
-                        <h6 class="fw-bold text-success mb-3">➕ Buat Divisi Baru</h6>
-                        <form action="{{ route('siswa.panitia-subrole-store', $activity->activity_code) }}" method="POST">
+                        <h6 class="fw-bold text-success mb-3">➕ Tambahkan Divisi</h6>
+                        <p class="text-muted small">Pilih divisi dari master data organisasi untuk diaktifkan pada kepanitiaan acara ini.</p>
+
+                        <form action="{{ route('siswa.panitia-divisi-add', $activity->activity_code) }}" method="POST">
                             @csrf
+                            
                             <div class="mb-3">
-                                <label class="form-label small fw-bold">Kode Divisi</label>
-                                <input type="text" name="sub_role_code" class="form-control" placeholder="Contoh: PUB, ACR" maxlength="10" required>
-                                <div class="form-text">Maksimal 10 karakter unik.</div>
+                                <label class="form-label fw-bold">Pilih Divisi</label>
+                                <select name="sub_role_id" class="form-select" required {{ $availableSubRoles->count() == 0 ? 'disabled' : '' }}>
+                                    
+                                    @if($availableSubRoles->count() > 0)
+                                        <option value="" selected disabled>-- Pilih Divisi --</option>
+                                        @foreach($availableSubRoles as $sub)
+                                            <option value="{{ $sub->sub_role_id }}">
+                                                [{{ $sub->sub_role_code }}] {{ $sub->sub_role_name }}
+                                            </option>
+                                        @endforeach
+                                    @else
+                                        <option value="" disabled selected>Semua divisi sudah ditambahkan!</option>
+                                    @endif
+
+                                </select>
+                                
+                                @if($availableSubRoles->count() == 0)
+                                    <div class="form-text text-success mt-2 fw-bold">
+                                        <i class="bi bi-check-circle-fill"></i> Semua opsi divisi master sudah digunakan.
+                                    </div>
+                                @endif
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold">Nama Divisi (Indonesia)</label>
-                                <input type="text" name="sub_role_name" class="form-control" placeholder="Contoh: Publikasi & Dokumentasi" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold">Nama Divisi (Inggris) - Opsional</label>
-                                <input type="text" name="sub_role_name_en" class="form-control" placeholder="Contoh: Publication & Documentation">
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-success fw-bold">Simpan Divisi</button>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-success fw-bold shadow-sm" {{ $availableSubRoles->count() == 0 ? 'disabled' : '' }}>
+                                    <i class="bi bi-plus-circle me-1"></i> Tambahkan ke Acara
+                                </button>
                             </div>
                         </form>
                     </div>
                 </div>
+
             </div>
         </div>
 

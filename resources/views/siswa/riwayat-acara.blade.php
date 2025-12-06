@@ -5,6 +5,7 @@
 <h3 class="mb-3">Riwayat Keikutsertaan Acara</h3>
 <p class="text-muted">Lihat daftar acara yang pernah kamu ikuti beserta peran dan hasil evaluasi kinerjamu (KPI).</p>
 
+{{-- Kartu Summary KPI --}}
 <div class="card shadow-sm mb-4 border-0">
     <div class="card-body text-center">
         <h5 class="fw-bold text-primary mb-2">Rata-Rata Nilai KPI Keseluruhan</h5>
@@ -19,6 +20,7 @@
     </div>
 </div>
 
+{{-- Tabel Riwayat --}}
 <div class="card shadow-sm">
     <div class="card-body">
         <table class="table table-bordered align-middle">
@@ -27,7 +29,7 @@
                     <th>Nama Acara</th>
                     <th>Peran</th> {{-- Saya gabung Divisi & Jabatan biar hemat tempat --}}
                     <th style="width: 15%;">Nilai KPI</th>
-                    <th style="width: 40%;">Catatan / Masukan</th> {{-- KOLOM BARU --}}
+                    <th style="width: 10%;">Aksi</th> {{-- KOLOM BARU: AKSI --}}
                 </tr>
             </thead>
             <tbody>
@@ -73,27 +75,14 @@
                             @endif
                         </td>
 
-                        {{-- KOLOM 4: ALASAN / REVIEW --}}
-                        <td class="text-start bg-light">
-                            @if($h->final_review)
-                                <div class="small text-secondary" style="font-style: italic;">
-                                    
-                                    {{-- 1. Pecah text berdasarkan Enter (\n) --}}
-                                    @php $reasons = explode("\n", $h->final_review); @endphp
-
-                                    {{-- 2. Loop setiap alasan --}}
-                                    @foreach($reasons as $reason)
-                                        {{-- Cek agar baris kosong tidak ikut dicetak --}}
-                                        @if(trim($reason) !== "")
-                                            "{{ $reason }}" <br><br>
-                                        @endif
-                                    @endforeach
-
-                                </div>
-                            @else
-                                <span class="text-muted small">- Tidak ada catatan -</span>
-                            @endif
+                        {{-- KOLOM 4: TOMBOL DETAIL (BARU) --}}
+                        <td class="text-center">
+                            {{-- Ganti 'activity.members' sesuai nama route Anda --}}
+                            <a href="{{ route('activity.members', $h->activity->activity_code) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-people-fill"></i> Detail
+                            </a>
                         </td>
+                        
                     </tr>
                 @empty
                     <tr>

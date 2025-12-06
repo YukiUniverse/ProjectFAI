@@ -12,6 +12,7 @@ use App\Models\StudentActivity;
 use App\Models\StudentRole;
 use App\Models\StudentOrganization;
 use App\Models\SubRole;
+use App\Models\ActivitySubRole;
 use App\Models\StudentRating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,25 +31,32 @@ class PanitiaController extends Controller
     }
 
     /**
-     * [BARU] Simpan Sub Role / Divisi Baru
+     * Store: Menambahkan Divisi ke Acara (Insert ke tabel activity_sub_roles)
      */
-    public function storeSubRole(Request $request, $activityCode)
+    public function storeActivitySubRole(Request $request, $activityCode)
     {
         $request->validate([
-            'sub_role_name' => 'required|string|max:255',
-            'sub_role_code' => 'required|string|max:10|unique:sub_roles,sub_role_code', // Pastikan kode unik
+            'sub_role_id' => 'required|exists:sub_roles,sub_role_id',
         ]);
 
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
 
-        SubRole::create([
+        // Cek duplikasi (optional, karena sudah difilter di view, tapi bagus untuk security)
+        $exists = ActivitySubRole::where('student_activity_id', $activity->student_activity_id)
+            ->where('sub_role_id', $request->sub_role_id)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', 'Divisi tersebut sudah ada di acara ini.');
+        }
+
+        // Simpan ke Pivot Table
+        ActivitySubRole::create([
             'student_activity_id' => $activity->student_activity_id,
-            'sub_role_name'       => $request->sub_role_name,
-            'sub_role_name_en'    => $request->sub_role_name_en, // Opsional
-            'sub_role_code'       => strtoupper($request->sub_role_code),
+            'sub_role_id'         => $request->sub_role_id
         ]);
 
-        return back()->with('success', 'Divisi baru berhasil dibuat!');
+        return back()->with('success', 'Divisi berhasil ditambahkan ke acara.');
     }
 
     public function daftarAcara()
@@ -141,14 +149,30 @@ class PanitiaController extends Controller
 
         if ($activity->status == "preparation") {
             $listDivisi = SubRole::all();
-            $activitySubRoles = SubRole::where('student_activity_id', $activity->student_activity_id)->get();
+
             $panitiaList = ActivityStructure::with(['student', 'role', 'subRole'])
             ->where('student_activity_id', $activity->student_activity_id)
             ->get();
-            $subRoles = $activitySubRoles; 
+
             $roles = StudentRole::all();
-            return view('siswa.preparation.dashboard', compact('activity', 'panitia', 'jadwal', 'existingRatings', 'listDivisi','activitySubRoles','panitiaList','subRoles','roles'));
-        }
+
+            $currentDivisions = ActivitySubRole::with('subRole')
+            ->where('student_activity_id', $activity->student_activity_id)
+            ->get();
+
+            // B. Ambil ID divisi yang sudah terpakai
+            $usedSubRoleIds = $currentDivisions->pluck('sub_role_id')->toArray();
+
+            // C. Ambil Divisi Master yang BELUM dipakai (Untuk Dropdown)
+            $availableSubRoles = SubRole::whereNotIn('sub_role_id', $usedSubRoleIds)->get();
+
+            // Variabel $subRoles (untuk dropdown di tab Struktur) sebaiknya diambil dari yang sudah diassign
+            // Kita map agar bentuknya collection SubRole, bukan ActivitySubRole
+            $subRoles = $currentDivisions->map(function ($item) {
+                return $item->subRole;
+            });
+                return view('siswa.preparation.dashboard', compact('activity', 'panitia', 'jadwal', 'existingRatings', 'listDivisi','panitiaList','roles','currentDivisions','availableSubRoles','subRoles'));
+            }
         return view('siswa.panitia-detail', compact('activity', 'panitia', 'jadwal', 'existingRatings'));
     }
     public function panitiaChat()
@@ -184,15 +208,30 @@ class PanitiaController extends Controller
             }
         ])->get();
         $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
-        // [UPDATE] Ambil SubRole KHUSUS untuk Activity ini (Bukan All Global)
-        // Agar di tab "Divisi" yang muncul hanya divisi milik acara ini
-        $activitySubRoles = SubRole::where('student_activity_id', $activity->student_activity_id)->get();
+        
+        // ==========================================
+        // UPDATE LOGIKA DIVISI (SUB ROLE)
+        // ==========================================
 
-        // (Opsional) Jika tab struktur butuh list global, bisa tetap pakai SubRole::all(), 
-        // tapi sebaiknya gunakan yang spesifik activity juga.
-        $subRoles = $activitySubRoles; 
+        // A. Ambil Divisi yang SUDAH ada di acara ini (dari tabel pivot)
+        // Kita load relasi 'subRole' untuk mengambil nama divisinya
+        $currentDivisions = ActivitySubRole::with('subRole')
+            ->where('student_activity_id', $activity->student_activity_id)
+            ->get();
 
-        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles', 'listPendaftar','activitySubRoles','subRoles'));
+        // B. Ambil ID divisi yang sudah terpakai
+        $usedSubRoleIds = $currentDivisions->pluck('sub_role_id')->toArray();
+
+        // C. Ambil Divisi Master yang BELUM dipakai (Untuk Dropdown)
+        $availableSubRoles = SubRole::whereNotIn('sub_role_id', $usedSubRoleIds)->get();
+
+        // Variabel $subRoles (untuk dropdown di tab Struktur) sebaiknya diambil dari yang sudah diassign
+        // Kita map agar bentuknya collection SubRole, bukan ActivitySubRole
+        $subRoles = $currentDivisions->map(function ($item) {
+            return $item->subRole;
+        });
+
+        return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles', 'listPendaftar','currentDivisions','subRoles','availableSubRoles'));
     }
 
     public function kickMember($structureId)
@@ -248,37 +287,19 @@ class PanitiaController extends Controller
         }
     }
 
-    public function updateDivision(Request $request, $id)
-    {
-        // 1. Validasi Input
-        $request->validate([
-            'sub_role_name' => 'required|string|max:255',
-            'sub_role_code' => 'required|string|max:10|unique:sub_roles,sub_role_code,' . $id . ',sub_role_id',
-        ]);
-
-        // 2. Ambil Data
-        $subRole = SubRole::findOrFail($id);
-        
-        // 3. Update
-        $subRole->update([
-            'sub_role_name'    => $request->sub_role_name,
-            'sub_role_name_en' => $request->sub_role_name_en,
-            'sub_role_code'    => strtoupper($request->sub_role_code),
-        ]);
-
-        return back()->with('success', 'Divisi berhasil diperbarui!');
-    }
+    
 
     /**
-     * Hapus Divisi (Soft Delete)
-     * Pastikan Model SubRole menggunakan Trait SoftDeletes dan tabel memiliki kolom deleted_at
+     * Delete: Menghapus Divisi dari Acara (Soft Delete Pivot)
      */
-    public function deleteDivision($id)
+    public function deleteActivitySubRole($id)
     {
-        $subRole = SubRole::findOrFail($id);
-        $subRole->delete(); // Soft delete
+        // Cari berdasarkan ID Pivot (activity_sub_roles_id)
+        $pivotItem = ActivitySubRole::findOrFail($id);
+        
+        $pivotItem->delete(); // Soft Delete
 
-        return back()->with('success', 'Divisi berhasil dihapus.');
+        return back()->with('success', 'Divisi berhasil dihapus dari acara.');
     }
 
     public function updateStatus(Request $request, $activityCode)
@@ -351,11 +372,12 @@ class PanitiaController extends Controller
 
             DB::beginTransaction();
             try {
-                // Ambil semua ID mahasiswa yang jadi panitia di acara ini
+                // 1. Ambil semua ID mahasiswa yang jadi panitia di acara ini
                 $memberIds = ActivityStructure::where('student_activity_id', $activity->student_activity_id)
                     ->pluck('student_id');
 
-                // Looping Ganda: Setiap anggota harus menilai setiap anggota lain
+                // 2. AUTO-FILL RATING (Looping Ganda)
+                // Setiap anggota harus menilai setiap anggota lain
                 foreach ($memberIds as $raterId) {       // Si Penilai
                     foreach ($memberIds as $ratedId) {   // Yang Dinilai
 
@@ -363,31 +385,58 @@ class PanitiaController extends Controller
                         if ($raterId == $ratedId)
                             continue;
 
-                        // Cek & Isi Otomatis
-                        // firstOrCreate: Cek database, jika belum ada rating, buat baru.
-                        // Jika sudah ada (misal si A sudah menilai si B), biarkan saja (tidak ditimpa).
+                        // Cek & Isi Otomatis dengan Default Bintang 4
                         StudentRating::firstOrCreate(
                             [
-                                // KUNCI PENCARIAN (Syarat Unik)
                                 'student_activity_id' => $activity->student_activity_id,
                                 'rater_student_id' => $raterId,
                                 'rated_student_id' => $ratedId,
                             ],
                             [
-                                // DATA DEFAULT (Hanya dipakai jika data baru dibuat)
                                 'stars' => 4,
-                                'reason' => 'No Comment',
+                                'reason' => 'No Comment (Auto-filled)',
                             ]
                         );
                     }
                 }
 
+                // 3. HITUNG & UPDATE NILAI AKHIR (Logic Baru)
+                // Setelah auto-fill selesai, kita hitung rata-rata rating untuk setiap anggota
+                foreach ($memberIds as $studentId) {
+                    
+                    // Hitung rata-rata 'stars' yang diterima oleh student ini
+                    // Contoh: Rata-rata 3.5 Bintang
+                    $averageRating = StudentRating::where('student_activity_id', $activity->student_activity_id)
+                        ->where('rated_student_id', $studentId)
+                        ->avg('stars');
+
+                    // Konversi ke Skala 100 (1 Bintang = 25 Poin)
+                    // Rumus: Rata-rata * 25
+                    // Contoh: 3.5 * 25 = 87.5 Poin
+                    $finalScore = $averageRating ? round($averageRating * 25) : 0;
+
+                    // Update tabel ActivityStructure
+                    // Simpan rata-rata ke kolom final_point_percentage (sesuai schema migrasi tipe float)
+                    ActivityStructure::where('student_activity_id', $activity->student_activity_id)
+                        ->where('student_id', $studentId)
+                        ->update([
+                            'final_point_percentage' => $finalScore,
+                            // Opsional: Jika ingin memberi catatan otomatis pada review ketua
+                            // 'final_review' => 'Nilai dikalkulasi otomatis sistem.' 
+                        ]);
+                }
+
+                // Update status aktivitas
+                $activity->status = 'grading_2';
+                $activity->save();
+
                 DB::commit();
-                // Lanjut ke proses update status di bawah...
+                
+                return back()->with('success', 'Status berhasil diubah ke Final Grading. Nilai akhir anggota telah dikalkulasi.');
 
             } catch (\Exception $e) {
                 DB::rollBack();
-                return back()->with('error', 'Gagal melakukan auto-fill rating: ' . $e->getMessage());
+                return back()->with('error', 'Gagal memproses Grading 2: ' . $e->getMessage());
             }
         }
 
@@ -414,6 +463,10 @@ class PanitiaController extends Controller
         // Tambahan pesan jika masuk ke Final Grading
         if ($request->status === 'grading_2') {
             $message .= '. Sistem otomatis mengisi rating kosong dengan nilai default.';
+        }
+
+        if ($request->status === 'preparation') {
+            return redirect()->route('siswa.panitia-detail',$activityCode)->with('success', $message);
         }
 
         return back()->with('success', $message);
@@ -568,5 +621,29 @@ class PanitiaController extends Controller
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    public function showMembers($activityCode)
+    {
+        // 1. Ambil data Activity (Acara) itu sendiri
+        // Tambahkan ->firstOrFail() untuk eksekusi query & throw 404 jika tidak ketemu
+        $activity = StudentActivity::where("activity_code", $activityCode)->firstOrFail(); 
+
+        // 2. Ambil daftar anggota dari tabel ActivityStructure
+        $members = ActivityStructure::with(['student', 'role', 'subRole'])
+                    ->where('student_activity_id', $activity->student_activity_id)
+                    ->get();
+
+        // 3. Kembalikan ke view
+        return view('siswa.members', compact('activity', 'members'));
+    }
+
+
+    /**
+     * Export data anggota ke dalam file Excel.
+     */
+    public function exportExcel($activityCode)
+    {
+
     }
 }

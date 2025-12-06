@@ -47,12 +47,39 @@ return new class extends Migration {
         Schema::create('sub_roles', function (Blueprint $table) {
             $table->increments('sub_role_id');
             $table->string('sub_role_code', 10)->nullable();
-            $table->unsignedInteger('student_activity_id');
+
             $table->string('sub_role_name', 255);
             $table->string('sub_role_name_en', 255)->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->foreign('student_activity_id')->references('student_activity_id')->on('student_activities');
+
+        });
+
+        Schema::create('activity_sub_roles', function (Blueprint $table) {
+            // 1. Primary Key (Incremental)
+            $table->increments('activity_sub_roles_id');
+
+            // 2. Foreign Key ke Student Activity
+            $table->unsignedInteger('student_activity_id');
+
+            // 3. Foreign Key ke Sub Roles (Master Divisi)
+            // Saya namakan 'sub_role_id' (singular) agar sesuai standar Laravel relasi ke 'sub_role_id'
+            // Jika Anda wajib pakai 'sub_roles_id' (plural), ubah parameter pertama di bawah.
+            $table->unsignedInteger('sub_role_id'); 
+
+            $table->timestamps();
+            $table->softDeletes(); // <--- Added Soft Deletes
+
+            // DEFINISI FOREIGN KEYS
+            $table->foreign('student_activity_id')
+                  ->references('student_activity_id')
+                  ->on('student_activities');
+     
+
+            $table->foreign('sub_role_id')
+                  ->references('sub_role_id') // Kolom id di tabel sub_roles
+                  ->on('sub_roles');
+
         });
 
         // 3. Activity Structures (Paten + Modifikasi Nilai Akhir)
@@ -66,7 +93,7 @@ return new class extends Migration {
             $table->integer('structure_points')->nullable();
 
             // Kolom tambahan untuk Step 4 (Grading)
-            $table->float('final_point_percentage')->default(100); // Default 100%
+            $table->float('final_point_percentage')->nullable(); 
             $table->text('final_review')->nullable(); // Review ketua
             $table->softDeletes();
 
@@ -88,5 +115,6 @@ return new class extends Migration {
         Schema::dropIfExists('sub_roles');
         Schema::dropIfExists('student_activities');
         Schema::dropIfExists('proposals');
+        Schema::dropIfExists('activity_sub_roles');
     }
 };
