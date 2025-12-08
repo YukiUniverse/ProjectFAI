@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\ActivityBPH;
+use App\Http\Middleware\ActivityMember;
 use App\Http\Middleware\CheckRole;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
@@ -16,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth' => Authenticate::class,
             'check-role' => CheckRole::class,
+            'mode-bph' => ActivityBPH::class,
+            'mode-panitia' => ActivityMember::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

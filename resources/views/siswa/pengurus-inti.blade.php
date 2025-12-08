@@ -217,9 +217,9 @@
                 {{-- HEADER DENGAN TOMBOL INVITE --}}
                 <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                     <h6 class="fw-bold text-success m-0">🏗️ Atur Struktur BPH & Koordinator Divisi</h6>
-                    <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#inviteModal">
-                        <i class="bi bi-person-plus-fill"></i> + Invite Member
-                    </button>
+                    <a href="{{ route('siswa.export_excel', $activity->activity_code) }}" class="btn btn-success btn-lg">
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i> Download Excel
+                    </a>
                 </div>
 
                 {{-- FORM UPDATE STRUKTUR --}}

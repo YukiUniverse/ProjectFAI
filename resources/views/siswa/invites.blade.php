@@ -40,7 +40,7 @@
                                     {{ $invite->activity->activity_name }}
                                 </h5>
                                 <div class="text-muted small">
-                                    <i class="bi bi-building me-1"></i> {{ $invite->activity->student_organization_id }}
+                                    <i class="bi bi-building me-1"></i> {{ $invite->activity->organization->organization_name }}
                                     <span class="mx-1">•</span>
                                     <i class="bi bi-calendar-event me-1"></i>
                                     {{ \Carbon\Carbon::parse($invite->activity->start_datetime)->format('d M Y') }}

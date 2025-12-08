@@ -172,15 +172,11 @@
                 {{-- Make sure the route matches what you defined in web.php --}}
                 <a href="{{ route('siswa.invites.index') }}" class="me-3 text-secondary position-relative">
                     <i class="bi bi-envelope fs-4"></i>
-
-
                     {{-- Optional: Add a red dot if you want to show 'unread' status later --}}
-                    {{--
                     <span
                         class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
                         <span class="visually-hidden">New alerts</span>
                     </span>
-                    --}}
                 </a>
 
                 <!-- B. Profile Picture -->
@@ -224,6 +220,10 @@
                     <a class="sidebar-link {{ request()->routeIs('siswa.panitia-dashboard') ? 'active' : '' }}"
                         href="{{ route('siswa.panitia-dashboard') }}">
                         🗓️ Acara Saya
+                    </a>
+                    <a class="sidebar-link {{ request()->routeIs('siswa.panitia-dashboard-interview') ? 'active' : '' }}"
+                        href="{{ route('siswa.panitia-dashboard-interview') }}">
+                        📝 Interview
                     </a>
 
                     <p class="text-uppercase text-muted small fw-bold mb-2 mt-3">Administrasi</p>

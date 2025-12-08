@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DosenController;
+use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MailInviteController;
 use App\Http\Controllers\OpenRecruitmentController;
@@ -30,62 +31,64 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     // Panitia (umum)
 
     Route::get('/panitia/dashboard/', [PanitiaController::class, 'panitiaDashboard'])->name('siswa.panitia-dashboard');
+    Route::get('/panitia/interview/', [PanitiaController::class, 'panitiaDashboardInterview'])->name('siswa.panitia-dashboard-interview');
     // Oprec
-    Route::get('/panitia/pendaftar/{activityCode}', [OpenRecruitmentController::class, 'panitiaPendaftar'])->name('siswa.panitia-pendaftar');
-    Route::get('/panitia/pendaftar/{activityCode}/detail/{registrationID}', [OpenRecruitmentController::class, 'detailPendaftar'])->name('siswa.detail-pendaftar');
-    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationID}/storeDecision', [OpenRecruitmentController::class, 'storeInterviewerDecision'])->name('siswa.store-decision');
-    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationID}/storeFinalDecision', [OpenRecruitmentController::class, 'storeFinalDecision'])->name('siswa.store-decision-akhir');
+    Route::get('/panitia/pendaftar/{activityCode}', [OpenRecruitmentController::class, 'panitiaPendaftar'])->name('siswa.panitia-pendaftar')->middleware('mode-bph');
+    Route::get('/panitia/pendaftar/{activityCode}/detail/{registrationID}', [OpenRecruitmentController::class, 'detailPendaftar'])->name('siswa.detail-pendaftar')->middleware('mode-bph');
+    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationID}/storeDecision', [OpenRecruitmentController::class, 'storeInterviewerDecision'])->name('siswa.store-decision')->middleware('mode-bph');
+    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationID}/storeFinalDecision', [OpenRecruitmentController::class, 'storeFinalDecision'])->name('siswa.store-decision-akhir')->middleware('mode-bph');
+
     // Route to show the interview page
-    Route::get('/panitia/pendaftar/{activityCode}/detail/{registrationId}/interview', [OpenRecruitmentController::class, 'showInterview'])->name('siswa.showInterview');
+    Route::get('/panitia/pendaftar/{activityCode}/detail/{registrationId}/interview', [OpenRecruitmentController::class, 'showInterview'])->name('siswa.showInterview')->middleware('mode-bph');
     // Route to save the answers
-    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationId}/interview', [OpenRecruitmentController::class, 'storeInterview'])->name('siswa.storeInterview');
+    Route::post('/panitia/pendaftar/{activityCode}/detail/{registrationId}/interview', [OpenRecruitmentController::class, 'storeInterview'])->name('siswa.storeInterview')->middleware('mode-bph');
 
+    Route::get('/panitia/detail/{activityCode}', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail')->middleware('mode-panitia');
+    Route::get('/panitia/pengurus/{activityCode}', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus')->middleware('mode-bph');
+    Route::get('/panitia/pengurus-excel/{activityCode}', [ExcelController::class, 'exportExcelAnggota'])->name('siswa.export_excel')->middleware('mode-bph');
+    Route::post('/panitia/pengurus/pertanyaan/{activityCode}', [PanitiaController::class, 'tambahPertanyaan'])->name('siswa.tambah-pertanyaan')->middleware('mode-bph');
+    Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal')->middleware('mode-panitia');
 
-
-    Route::get('/panitia/detail/{activityCode}', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail');
-    Route::get('/panitia/chat/', [PanitiaController::class, 'panitiaChat'])->name('siswa.panitia-chat');
-    Route::get('/panitia/pengurus/{activityCode}', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus');
-    Route::post('/panitia/pengurus/pertanyaan/{activityCode}', [PanitiaController::class, 'tambahPertanyaan'])->name('siswa.tambah-pertanyaan');
-    Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal');
-
-    Route::post('/panitia/saveEvaluasi/{activityCode}', [PanitiaController::class, 'saveEvaluasi'])->name('siswa.panitia-save-evaluasi');
+    Route::post('/panitia/saveEvaluasi/{activityCode}', [PanitiaController::class, 'saveEvaluasi'])->name('siswa.panitia-save-evaluasi')->middleware('mode-panitia');
     Route::post('/panitia/simpan-grading/{activityCode}', [PanitiaController::class, 'saveGrading'])
-        ->name('siswa.panitia-save-grading');
+        ->name('siswa.panitia-save-grading')->middleware('mode-panitia');
     Route::post('/panitia/update-status/{activityCode}', [PanitiaController::class, 'updateStatus'])
-        ->name('siswa.panitia-update-status');
+        ->name('siswa.panitia-update-status')->middleware('mode-bph');
     Route::post('/panitia/update-struktur/{activityCode}', [PanitiaController::class, 'updateStructure'])
-        ->name('siswa.panitia-update-struktur');
+        ->name('siswa.panitia-update-struktur')->middleware('mode-bph');
     // Simpan Jadwal (Perlu activityCode untuk tahu ini jadwal acara apa)
-    Route::post('/panitia/store-schedule/{activityCode}', [ScheduleController::class, 'store'])->name('siswa.jadwal-store');
+    Route::post('/panitia/store-schedule/{activityCode}', [ScheduleController::class, 'store'])->name('siswa.jadwal-store')->middleware('mode-bph');
     // Halaman Edit
-    Route::get('/panitia/edit-schedule/{id}', [ScheduleController::class, 'edit'])->name('siswa.jadwal-edit');
+    Route::get('/panitia/edit-schedule/{id}', [ScheduleController::class, 'edit'])->name('siswa.jadwal-edit')->middleware('mode-bph');
     // Update Data
-    Route::put('/panitia/update-schedule/{id}', [ScheduleController::class, 'update'])->name('siswa.jadwal-update');
+    Route::put('/panitia/update-schedule/{id}', [ScheduleController::class, 'update'])->name('siswa.jadwal-update')->middleware('mode-bph');
     // Hapus Data
-    Route::delete('/panitia/delete-schedule/{id}', [ScheduleController::class, 'destroy'])->name('siswa.jadwal-delete');
+    Route::delete('/panitia/delete-schedule/{id}', [ScheduleController::class, 'destroy'])->name('siswa.jadwal-delete')->middleware('mode-bph');
     // Riwayat umum
     Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
     Route::get('/activity/{activityCode}/members', [PanitiaController::class, 'showMembers'])->name('activity.members');
-    Route::get('/activity/{activityCode}/export', [PanitiaController::class, 'exportExcel'])->name('activity.export_excel');
+    Route::get('/activity/{activityCode}/export', [ExcelController::class, 'exportExcel'])->name('activity.export_excel')->middleware('mode-bph');
 
     Route::get('/invitations', [MailInviteController::class, 'index'])->name('siswa.invites.index');
     Route::post('/invitations/{id}', [MailInviteController::class, 'respond'])->name('siswa.invites.respond');
     // Route untuk mencari mahasiswa berdasarkan NIM (AJAX)
     Route::get('/api/search-student', [MailInviteController::class, 'searchStudent'])
-    ->name('api.search-student');
+        ->name('api.search-student');
     // Route Tambah Divisi ke Acara (Pilih dari Master)
     Route::post('/panitia/divisi-add/{activityCode}', [PanitiaController::class, 'storeActivitySubRole'])
-    ->name('siswa.panitia-divisi-add');
+        ->name('siswa.panitia-divisi-add')->middleware('mode-bph');
 
 
-// Route untuk menyimpan undangan (Invite)
+    // Route untuk menyimpan undangan (Invite)
     Route::post('/panitia/invite-member/{activityCode}', [MailInviteController::class, 'storeInvite'])
-    ->name('siswa.panitia-invite');
+        ->name('siswa.panitia-invite')->middleware('mode-bph');
     // Route Hapus Divisi dari Acara
     Route::delete('/panitia/divisi-delete/{id}', [PanitiaController::class, 'deleteActivitySubRole'])
-    ->name('siswa.panitia-divisi-delete');
+        ->name('siswa.panitia-divisi-delete')->middleware('mode-bph');
     Route::delete('/panitia/kick/{structureId}', [PanitiaController::class, 'kickMember'])
-    ->name('siswa.panitia-kick');
+        ->name('siswa.panitia-kick')->middleware('mode-bph');
+
+
 });
 
 /*
@@ -96,7 +99,7 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-// Proposal
+    // Proposal
     Route::get('/proposal', [AdminController::class, 'proposalList'])->name('proposal-list');
     Route::post('/proposal/{id}/verify', [AdminController::class, 'verifyProposal'])->name('proposal-verify');
 
@@ -105,9 +108,9 @@ Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')
     Route::get('/acara/{activityCode}/panitia', [AdminController::class, 'panitiaDetail'])->name('panitia-detail');
 
     // Laporan 
-    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan'); 
+    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
     // Resulting Name: 'admin.laporan' <--- This fixes your error
-    
+
     Route::get('/laporan/detail/{activityCode}', [AdminController::class, 'laporanDetail'])->name('laporan-detail');
     Route::get('/history-pendaftaran', [AdminController::class, 'historyPendaftaran'])->name('history-pendaftaran');
 
@@ -119,12 +122,12 @@ Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'check-role:lecturer'])->prefix('dosen')->name('dosen.')->group(function () {
-       Route::get('/dashboard', [DosenController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [DosenController::class, 'dashboard'])->name('dashboard');
     Route::get('/laporan-kpi', [DosenController::class, 'laporanKpi'])->name('laporan-kpi');
 
     Route::get('/laporan-acara', [DosenController::class, 'laporanAcara'])->name('laporan-acara');
     Route::get('/laporan-acara/{id}', [DosenController::class, 'laporanAcaraDetail'])->name('laporan-acara-detail');
-    
+
     Route::get('/laporan-mahasiswa', [DosenController::class, 'laporanMahasiswa'])->name('laporan-mahasiswa');
     Route::get('/laporan-mahasiswa/{id}', [DosenController::class, 'laporanMahasiswaDetail'])->name('laporan-mahasiswa-detail');
 });
