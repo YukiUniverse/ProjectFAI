@@ -1,15 +1,15 @@
-@extends('layouts.dosen')
+@extends('layouts.admin')
 @section('title', 'Laporan Mahasiswa')
 @section('content')
 
-<h3>🎓 Laporan & KPI Mahasiswa</h3>
-<p class="text-muted">Daftar mahasiswa beserta performa rata-rata (KPI) mereka.</p>
+<h3>🎓 Laporan Data Mahasiswa</h3>
 
+{{-- FILTER NAMA --}}
 <div class="row mb-3">
     <div class="col-md-6">
-        <form action="{{ route('dosen.laporan-mahasiswa') }}" method="GET" class="d-flex gap-2">
-            <input type="text" name="search" class="form-control" placeholder="Cari Nama Mahasiswa..." value="{{ request('search') }}">
-            <button class="btn btn-success">Cari</button>
+        <form action="{{ route('admin.laporan-mahasiswa') }}" method="GET" class="d-flex gap-2">
+            <input type="text" name="search" class="form-control" placeholder="Cari Nama / NRP..." value="{{ request('search') }}">
+            <button class="btn btn-primary">Cari</button>
         </form>
     </div>
 </div>
@@ -17,13 +17,12 @@
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
-            <thead class="table-success text-center">
+            <thead class="table-light">
                 <tr>
                     <th>NRP</th>
-                    <th>Nama Lengkap</th>
-                    <th>Rata-rata KPI</th>
-                    <th>Predikat</th>
-                    <th>Aksi</th>
+                    <th>Nama</th>
+                    <th>Jurusan</th>
+                    <th>KPI Global (Avg)</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,22 +30,13 @@
                 <tr>
                     <td>{{ $s->student_number }}</td>
                     <td>{{ $s->full_name }}</td>
-                    <td class="text-center fw-bold fs-5 text-warning">
-                        @if($s->kpi_score != '-') {{ $s->kpi_score }} ★ @else <span class="text-muted fs-6">-</span> @endif
-                    </td>
-                    <td class="text-center">
-                        @if($s->predikat == 'Sangat Baik') <span class="badge bg-success">Sangat Baik</span>
-                        @elseif($s->predikat == 'Baik') <span class="badge bg-primary">Baik</span>
-                        @elseif($s->predikat == 'Cukup') <span class="badge bg-warning text-dark">Cukup</span>
-                        @else <span class="badge bg-secondary">-</span>
-                        @endif
-                    </td>
-                    <td class="text-center">
-                        <a href="{{ route('dosen.laporan-mahasiswa-detail', $s->student_id) }}" class="btn btn-sm btn-outline-success">Detail Riwayat</a>
+                    <td>{{ $s->department->department_name ?? '-' }}</td>
+                    <td class="fw-bold {{ $s->global_kpi == '-' ? 'text-muted' : 'text-primary' }}">
+                        {{ $s->global_kpi }}
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center py-4">Data tidak ditemukan.</td></tr>
+                <tr><td colspan="4" class="text-center py-3">Mahasiswa tidak ditemukan.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -55,7 +45,6 @@
         {{ $students->links() }}
     </div>
 </div>
-
 {{-- TAMBAHAN FITUR SORTING --}}
 <style>
     /* Indikator cursor */
@@ -114,15 +103,6 @@
                 // Masukkan kembali baris yang sudah diurutkan ke tabel
                 tbody.append(...rows);
             });
-        });
-    });
-
-    document.getElementById('searchTable').addEventListener('keyup', function() {
-        let filter = this.value.toLowerCase();
-        let rows = document.querySelectorAll('#dataTable tbody tr');
-        rows.forEach(row => {
-            let text = row.innerText.toLowerCase();
-            row.style.display = text.includes(filter) ? '' : 'none';
         });
     });
 </script>

@@ -112,7 +112,7 @@
                 </div>
             </div>
             <div class="card-footer bg-white text-center">
-                <a href="{{ route('admin.laporan') }}" class="btn btn-sm btn-link text-decoration-none">Lihat Laporan Lengkap →</a>
+                <a href="{{ route('admin.acara-list', ['status' => 'finished']) }}" class="btn btn-sm btn-link text-decoration-none">Lihat Laporan Lengkap →</a>
             </div>
         </div>
     </div>

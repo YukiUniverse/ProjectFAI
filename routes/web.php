@@ -11,7 +11,7 @@ use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return   redirect()->route('login');
 });
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::get('/dummy', [LoginController::class, 'dataDummy'])->name('dummy');
@@ -90,45 +90,38 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 
 
 });
-
-/*
-|--------------------------------------------------------------------------
-| ROUTE ADMIN
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')->group(function () {
+// ==========================
+// 1. GROUP ADMIN
+// ==========================
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // Proposal
     Route::get('/proposal', [AdminController::class, 'proposalList'])->name('proposal-list');
     Route::post('/proposal/{id}/verify', [AdminController::class, 'verifyProposal'])->name('proposal-verify');
 
-    // Acara
+    // Acara (Gabungan Daftar & Laporan Acara)
     Route::get('/acara', [AdminController::class, 'acaraList'])->name('acara-list');
-    Route::get('/acara/{activityCode}/panitia', [AdminController::class, 'panitiaDetail'])->name('panitia-detail');
+    Route::get('/acara/{activityCode}/detail', [AdminController::class, 'panitiaDetail'])->name('panitia-detail');
 
-    // Laporan 
-    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
-    // Resulting Name: 'admin.laporan' <--- This fixes your error
-
-    Route::get('/laporan/detail/{activityCode}', [AdminController::class, 'laporanDetail'])->name('laporan-detail');
+    // Laporan Mahasiswa (BARU)
+    Route::get('/laporan-mahasiswa', [AdminController::class, 'laporanMahasiswa'])->name('laporan-mahasiswa');
+    
+    // History Global
     Route::get('/history-pendaftaran', [AdminController::class, 'historyPendaftaran'])->name('history-pendaftaran');
-
 });
 
-/*
-|--------------------------------------------------------------------------
-| ROUTE DOSEN
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'check-role:lecturer'])->prefix('dosen')->name('dosen.')->group(function () {
+// ==========================
+// 2. GROUP DOSEN
+// ==========================
+Route::middleware(['auth', 'role:lecturer'])->prefix('dosen')->name('dosen.')->group(function () {
     Route::get('/dashboard', [DosenController::class, 'dashboard'])->name('dashboard');
-    Route::get('/laporan-kpi', [DosenController::class, 'laporanKpi'])->name('laporan-kpi');
 
+    // Laporan Acara (Dibedakan Finish/Ongoing di View)
     Route::get('/laporan-acara', [DosenController::class, 'laporanAcara'])->name('laporan-acara');
     Route::get('/laporan-acara/{id}', [DosenController::class, 'laporanAcaraDetail'])->name('laporan-acara-detail');
-
+    
+    // Laporan Mahasiswa (Gabungan dengan KPI)
     Route::get('/laporan-mahasiswa', [DosenController::class, 'laporanMahasiswa'])->name('laporan-mahasiswa');
     Route::get('/laporan-mahasiswa/{id}', [DosenController::class, 'laporanMahasiswaDetail'])->name('laporan-mahasiswa-detail');
 });
-

@@ -1,38 +1,74 @@
 @extends('layouts.dosen')
 @section('title', 'Laporan Acara')
 @section('content')
+<h3>📅 Laporan Acara</h3>
+<p class="text-muted">Monitoring acara yang sedang berjalan dan evaluasi acara yang telah selesai.</p>
 
-<h3>📅 Laporan Per Acara</h3>
-<p class="text-muted">Pilih acara untuk melihat daftar mahasiswa yang terlibat.</p>
+<ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold" id="ongoing-tab" data-bs-toggle="tab" data-bs-target="#ongoing" type="button">🚀 Sedang Berjalan ({{ $ongoing->count() }})</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold" id="finished-tab" data-bs-toggle="tab" data-bs-target="#finished" type="button">✅ Selesai ({{ $finished->count() }})</button>
+    </li>
+</ul>
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white">
-        <input type="text" id="searchTable" class="form-control" placeholder="Cari nama acara...">
+<div class="tab-content" id="myTabContent">
+    {{-- TAB ONGOING --}}
+    <div class="tab-pane fade show active" id="ongoing" role="tabpanel">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Nama Acara</th>
+                            <th>Status</th>
+                            <th>Tanggal Mulai</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($ongoing as $act)
+                        <tr>
+                            <td>{{ $act->activity_name }}</td>
+                            <td><span class="badge bg-warning text-dark">{{ ucfirst($act->status) }}</span></td>
+                            <td>{{ $act->start_datetime->format('d M Y') }}</td>
+                            <td><a href="{{ route('dosen.laporan-acara-detail', $act->student_activity_id) }}" class="btn btn-sm btn-outline-primary">Lihat Peserta</a></td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="4" class="text-center py-4">Tidak ada acara berjalan.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <div class="card-body p-0">
-        <div style="max-height: 500px; overflow-y: auto;">
-            <table class="table table-hover mb-0" id="dataTable">
-                <thead class="table-primary sticky-top">
-                    <tr>
-                        <th>Nama Acara</th>
-                        <th>Status</th>
-                        <th>Tanggal Mulai</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($activities as $act)
-                    <tr>
-                        <td>{{ $act->activity_name }}</td>
-                        <td><span class="badge bg-secondary">{{ $act->status }}</span></td>
-                        <td>{{ $act->start_datetime->format('d M Y') }}</td>
-                        <td>
-                            <a href="{{ route('dosen.laporan-acara-detail', $act->student_activity_id) }}" class="btn btn-sm btn-outline-primary">Lihat Peserta</a>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
+    {{-- TAB FINISHED --}}
+    <div class="tab-pane fade" id="finished" role="tabpanel">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nama Acara</th>
+                            <th>Tanggal Selesai</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($finished as $act)
+                        <tr>
+                            <td>{{ $act->activity_name }}</td>
+                            <td>{{ $act->end_datetime ? $act->end_datetime->format('d M Y') : '-' }}</td>
+                            <td><a href="{{ route('dosen.laporan-acara-detail', $act->student_activity_id) }}" class="btn btn-sm btn-outline-light">Lihat Evaluasi</a></td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="3" class="text-center py-4">Belum ada acara selesai.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

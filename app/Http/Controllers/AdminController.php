@@ -81,10 +81,34 @@ class AdminController extends Controller
         return back()->with('success', 'Proposal Disetujui & Kegiatan Dibuat.');
     }
 
-    // --- KEGIATAN & PANITIA ---
-    public function acaraList()
+// --- REVISI: DAFTAR ACARA + LAPORAN ACARA (GABUNGAN) ---
+    public function acaraList(Request $request)
     {
-        $activities = StudentActivity::with('proposal.student')->orderBy('start_datetime', 'desc')->get();
+        $query = StudentActivity::with('proposal.student')
+            ->orderBy('start_datetime', 'desc');
+
+        // Filter: Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter: Search Nama Acara
+        if ($request->filled('search')) {
+            $query->where('activity_name', 'like', '%' . $request->search . '%');
+        }
+
+        $activities = $query->get();
+
+        // Hitung KPI jika acara sudah selesai (Untuk keperluan laporan)
+        foreach($activities as $act) {
+            if($act->status == 'finished') {
+                $avg = StudentRating::where('student_activity_id', $act->student_activity_id)->avg('stars');
+                $act->avg_kpi = $avg ? number_format($avg, 1) : '-';
+            } else {
+                $act->avg_kpi = 'On Going';
+            }
+        }
+
         return view('admin.acara-list', compact('activities'));
     }
 
@@ -104,7 +128,27 @@ class AdminController extends Controller
 
         return view('admin.panitia-detail', compact('activity', 'officialMembers', 'registrations'));
     }
+    // --- BARU: LAPORAN MAHASISWA ---
+    public function laporanMahasiswa(Request $request)
+    {
+        $query = Student::with('department');
 
+        // Filter: Search Nama Mahasiswa
+        if ($request->filled('search')) {
+            $query->where('full_name', 'like', '%' . $request->search . '%')
+                  ->orWhere('student_number', 'like', '%' . $request->search . '%');
+        }
+
+        $students = $query->paginate(50); // Pakai paginate biar rapi
+
+        // Hitung Rata-rata KPI Global
+        foreach($students as $s) {
+            $avg = StudentRating::where('rated_student_id', $s->student_id)->avg('stars');
+            $s->global_kpi = $avg ? number_format($avg, 1) : '-';
+        }
+
+        return view('admin.laporan-mahasiswa', compact('students'));
+    }
     // --- HISTORY GLOBAL ---
     public function historyPendaftaran()
     {

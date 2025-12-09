@@ -9,7 +9,7 @@
     <div class="col-md-4">
         <select class="form-select" disabled>
             <option selected>Semua Acara</option>
-        </select>
+            </select>
     </div>
     <div class="col-md-2">
         <button class="btn btn-primary w-100" type="button" disabled>Tampilkan</button>
