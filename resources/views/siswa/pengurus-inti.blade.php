@@ -270,7 +270,7 @@
                                                 </div>
                                             @else
                                                 <select class="form-select form-select-sm" name="updates[{{ $p->activity_structure_id }}][sub_role_id]">
-                                                    <option value="">-- Non-Divisi / Inti --</option>
+                                                    <option value="">-- Tidak punya Divisi --</option>
                                                     @foreach($subRoles as $sub)
                                                         <option value="{{ $sub->sub_role_id }}" 
                                                             {{ $p->sub_role_id == $sub->sub_role_id ? 'selected' : '' }}>

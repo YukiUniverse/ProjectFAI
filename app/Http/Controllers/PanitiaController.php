@@ -451,12 +451,20 @@ class PanitiaController extends Controller
      */
     public function deleteActivitySubRole($id)
     {
-        // Cari berdasarkan ID Pivot (activity_sub_roles_id)
-        $pivotItem = ActivitySubRole::findOrFail($id);
+        DB::transaction(function () use ($id) {
+            // 1. Cari data pivot (Divisi Acara) yang mau dihapus
+            $pivotItem = ActivitySubRole::findOrFail($id);
 
-        $pivotItem->delete(); // Soft Delete
+            // 2. Cari anggota di activity tersebut yang memegang divisi ini, lalu set jadi NULL
+            ActivityStructure::where('student_activity_id', $pivotItem->student_activity_id)
+                ->where('sub_role_id', $pivotItem->sub_role_id)
+                ->update(['sub_role_id' => null]);
 
-        return back()->with('success', 'Divisi berhasil dihapus dari acara.');
+            // 3. Hapus Divisi dari Acara (Soft Delete)
+            $pivotItem->delete();
+        });
+
+        return back()->with('success', 'Divisi berhasil dihapus. Anggota yang sebelumnya di divisi tersebut kini menjadi tanpa divisi (Inti).');
     }
 
     public function updateStatus(Request $request, $activityCode)
