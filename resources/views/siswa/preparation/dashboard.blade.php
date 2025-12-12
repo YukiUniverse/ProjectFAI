@@ -48,9 +48,13 @@
 
     {{-- NAVIGATION TABS (HANYA 3 TAB) --}}
     <ul class="nav nav-tabs mb-3">
+        @if($roleCode == "LEAD")
+
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#timeline">Timeline</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#interview">Interview Date</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#divisi">Divisi</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#struktur">Struktur</button></li>
+        @endif
     </ul>
 
     {{-- Alert Messages --}}
@@ -77,7 +81,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-
+    
+    @if($roleCode == "LEAD")
     {{-- KONTEN TAB --}}
     <div class="tab-content">
 
@@ -146,6 +151,90 @@
             </form>
         </div>
 
+
+
+        <!-- TAB PANE: PENGATURAN JADWAL INTERVIEW (GLOBAL) -->
+        <div class="tab-pane fade" id="interview">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card border-0 shadow-sm mt-3">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="card-title mb-0 text-primary">
+                                <i class="far fa-calendar-check me-2"></i>Pengaturan Tahap Wawancara
+                            </h5>
+                        </div>
+                        
+                        <div class="card-body p-4">
+                            <!-- Alert Info -->
+                            <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                                <i class="fas fa-info-circle fa-lg me-3"></i>
+                                <div>
+                                    <strong>Info:</strong> Jadwal dan lokasi yang diatur di sini berlaku untuk kegiatan <em>{{ $activity->activity_name }}</em>.
+                                </div>
+                            </div>
+
+                            <!-- Form Update Interview -->
+                            <form action="{{ route('student_activities.update_interview', $activity->activity_code) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                
+                                <!-- Input Tanggal -->
+                                <div class="mb-4">
+                                    <label for="interview_date" class="form-label fw-bold">Tanggal & Waktu</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light text-primary">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </span>
+                                        <input 
+                                            type="datetime-local" 
+                                            class="form-control" 
+                                            id="interview_date" 
+                                            name="interview_date" 
+                                            value="{{ $activity->interview_date ? \Carbon\Carbon::parse($activity->interview_date)->format('Y-m-d\TH:i') : '' }}"
+                                            required
+                                        >
+                                    </div>
+                                </div>
+
+                                <!-- Input Lokasi / Link (BARU) -->
+                                <div class="mb-4">
+                                    <label for="interview_location" class="form-label fw-bold">Lokasi / Link Meeting</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light text-primary">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </span>
+                                        <input 
+                                            type="text" 
+                                            class="form-control" 
+                                            id="interview_location" 
+                                            name="interview_location" 
+                                            value="{{ $activity->interview_location ?? '' }}"
+                                            placeholder="Contoh: Ruang Rapat Lt. 1 atau https://meet.google.com/..."
+                                        >
+                                    </div>
+                                    <div class="form-text text-muted">
+                                        Masukkan nama ruangan atau link video conference jika online.
+                                    </div>
+                                </div>
+
+                          
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-light" onclick="history.back()">Batal</button>
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="fas fa-save me-2"></i>Simpan Pengaturan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
         {{-- TAB 2: MANAJEMEN DIVISI (SUB ROLE) --}}
         <div class="tab-pane fade" id="divisi">
             <div class="row">
@@ -180,7 +269,7 @@
                                                 
                                                 <td class="text-center">
                                                     {{-- Tombol Delete (Menghapus dari acara, bukan menghapus master) --}}
-                                                    <form action="{{ route('siswa.panitia-divisi-delete', $pivot->activity_sub_roles_id) }}" 
+                                                    <form action="{{ route('siswa.panitia-divisi-delete', [$pivot->activity_sub_roles_id, $activity->activity_code]) }}" 
                                                         method="POST" 
                                                         class="d-inline"
                                                         onsubmit="return confirm('Yakin ingin menghapus divisi {{ $pivot->subRole->sub_role_name }} dari acara ini?')">
@@ -253,6 +342,7 @@
             </div>
         </div>
 
+       
         {{-- TAB 3: STRUKTUR (UTAMA) --}}
         <div class="tab-pane fade" id="struktur">
             <div class="card shadow-sm p-4">
@@ -260,9 +350,11 @@
                 {{-- HEADER STRUKTUR --}}
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="fw-bold text-success m-0">🏗️ Atur Struktur BPH & Koordinator Divisi</h6>
+                    
                     <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#inviteModal">
                         <i class="bi bi-person-plus-fill"></i> + Invite Member
                     </button>
+              
                 </div>
 
                 {{-- FORM UPDATE MASSAL --}}
@@ -342,7 +434,7 @@
                                                 <span class="text-muted small"><i class="bi bi-shield-lock"></i></span>
                                             @else
                                                 <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    onclick="confirmKick('{{ route('siswa.panitia-kick', $p->activity_structure_id) }}')"
+                                                    onclick="confirmKick('{{ route('siswa.panitia-kick', [$p->activity_structure_id, $activity->activity_code]) }}')"
                                                     title="Keluarkan Anggota">
                                                     <i class="bi bi-person-x"></i>
                                                 </button>
@@ -375,8 +467,10 @@
 
             </div>
         </div>
+      
 
     </div> {{-- END TAB CONTENT --}}
+    @endif
 
     {{-- MODAL INVITE MEMBER --}}
     <div class="modal fade" id="inviteModal" tabindex="-1" aria-hidden="true">

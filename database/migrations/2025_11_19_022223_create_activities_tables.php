@@ -17,10 +17,15 @@ return new class extends Migration {
             $table->string('title');
             $table->text('description');
             $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+            $table->unsignedInteger('student_organization_id'); // Organisasi (Tambahan)
             $table->text('reject_reason')->nullable();
             $table->timestamps();
+            // Kolom Waktu Pelaksanaan (Tambahan)
+            $table->dateTime('start_datetime'); 
+            $table->dateTime('end_datetime'); 
 
             $table->foreign('student_id')->references('student_id')->on('students');
+            $table->foreign('student_organization_id')->references('student_organization_id')->on('student_organizations');
         });
 
         // 2. Student Activities (Paten + Modifikasi Status & Link Proposal)
@@ -34,6 +39,8 @@ return new class extends Migration {
             $table->text('activity_description')->nullable();
             $table->dateTime('start_datetime');
             $table->dateTime('end_datetime')->nullable();
+            $table->dateTime('interview_date')->nullable(); // Interview Date
+            $table->string('interview_location')->nullable(); // <-- Kolom baru untuk tempat/link
 
             // Kolom tambahan untuk kontrol alur
             $table->enum('status', ['preparation', 'open_recruitment', 'interview', 'active', 'grading_1', 'grading_2', 'finished'])->default('preparation');
@@ -94,6 +101,7 @@ return new class extends Migration {
 
             // Kolom tambahan untuk Step 4 (Grading)
             $table->float('final_point_percentage')->nullable(); 
+            
             $table->text('final_review')->nullable(); // Review ketua
             $table->softDeletes();
 

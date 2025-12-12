@@ -7,11 +7,12 @@
         <p>{{$activity->activity_description}}</p>
         <ul class="list-unstyled">
             <li>
-                <strong>Tanggal:</strong>
+                <strong>Tanggal Acara:</strong>
                 {{ \Carbon\Carbon::parse($activity->start_datetime)->format('d M Y, H:i') }} -
                 {{ \Carbon\Carbon::parse($activity->end_datetime)->format('d M Y, H:i') }}
             </li>
-            <li><strong>Lokasi:</strong> Aula Utama Kampus</li>
+            <li><strong>Tanggal Interview:</strong> {{ \Carbon\Carbon::parse($activity->interview_date)->format('d M Y, H:i') }}</li>
+            <li><strong>Lokasi Interview:</strong> {{$activity->interview_location}}</li>
         </ul>
     </div>
     <form class="card p-4 shadow-sm" method="post" action="{{ route('siswa.daftar', $activity->student_activity_id) }}">

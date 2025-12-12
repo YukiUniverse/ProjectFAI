@@ -6,6 +6,8 @@ use App\Models\Proposal;
 use App\Models\StudentActivity;
 use App\Models\ActivityStructure;
 use App\Models\StudentRating;
+use App\Models\ActivitySubRole; // Import model ActivitySubRole
+use App\Models\SubRole; // Pastikan model ini ada
 use App\Models\RecruitmentRegistration;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -50,8 +52,108 @@ class AdminController extends Controller
     // --- PROPOSAL ---
     public function proposalList()
     {
-        $proposals = Proposal::with('student')->where('status', 'pending')->get();
+        // Ambil semua proposal, urutkan dari yang terbaru
+        $proposals = Proposal::with(['student', 'studentOrganization'])
+                        ->latest()
+                        ->get();
         return view('admin.proposal-list', compact('proposals'));
+    }
+
+    public function approve($id)
+    {
+        DB::transaction(function () use ($id) {
+            $proposal = Proposal::findOrFail($id);
+
+            // 1. Update Status Proposal
+            $proposal->update(['status' => 'accepted']);
+
+            // Cek duplikasi agar tidak double insert
+            $existingActivity = StudentActivity::where('proposal_id', $proposal->id)->first();
+            
+            if (!$existingActivity) {
+                
+                // --- LOGIC 1: GENERATE SEQUENTIAL CODE (ACTXXX) ---
+                
+                // Ambil activity terakhir berdasarkan ID terbesar
+                $lastActivity = StudentActivity::orderBy('student_activity_id', 'desc')->first();
+                
+                if ($lastActivity) {
+                    // Ambil string kode terakhir (Misal: ACT003)
+                    $lastCode = $lastActivity->activity_code;
+                    
+                    // Ambil angka dibelakang "ACT" (index ke-3 sampai akhir) -> "003" jadi int 3
+                    $lastNumber = (int) substr($lastCode, 3);
+                    
+                    // Tambah 1
+                    $nextNumber = $lastNumber + 1;
+                } else {
+                    // Jika belum ada data sama sekali, mulai dari 1
+                    $nextNumber = 1;
+                }
+
+                // Format ulang menjadi ACT + 3 digit angka (001, 002, dst)
+                $newActivityCode = 'ACT' . sprintf('%03d', $nextNumber);
+
+
+                // --- LOGIC 2: BUAT ACTIVITY ---
+
+                $activity = StudentActivity::create([
+                    'proposal_id'             => $proposal->id,
+                    'activity_code'           => $newActivityCode, // Pakai kode urut baru
+                    'activity_catalog_code'   => 'CAT-DEF',
+                    'student_organization_id' => $proposal->student_organization_id,
+                    'activity_name'           => $proposal->title,
+                    'activity_description'    => $proposal->description,
+                    'start_datetime'          => $proposal->start_datetime,
+                    'end_datetime'            => $proposal->end_datetime,
+                    'status'                  => 'preparation',
+                ]);
+
+
+                // --- LOGIC 3: MASUKKAN KETUA KE ACTIVITY STRUCTURE (ROLE BPH) ---
+
+                // Cari ID SubRole "BPH".
+                $bphRole = SubRole::where('sub_role_name', 'BPH')->first();
+
+                if ($bphRole) {
+                    // [BARU] Tambahkan BPH ke ActivitySubRole (Daftar sub role yang aktif di activity ini)
+                    ActivitySubRole::create([
+                        'student_activity_id' => $activity->student_activity_id,
+                        'sub_role_id'         => $bphRole->sub_role_id
+                    ]);
+                }
+
+                ActivityStructure::create([
+                    'student_activity_id' => $activity->student_activity_id,
+                    'student_id'          => $proposal->student_id, // ID Ketua dari Proposal
+                    'student_role_id'     => 1, // HARDCODE: 1 = Ketua / Role Utama
+                    'sub_role_id'         => $bphRole ? $bphRole->sub_role_id : null, // ID Sub Role BPH
+                    'structure_name'      => 'Ketua Pelaksana',
+                    'structure_points'    => 0, // Poin awal
+                ]);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Proposal disetujui. Activity Code baru dibuat dan Ketua telah ditambahkan sebagai BPH.');
+    }
+
+    /**
+     * Menolak Proposal dengan Alasan.
+     */
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'reject_reason' => 'required|string|max:1000',
+        ]);
+
+        $proposal = Proposal::findOrFail($id);
+        
+        $proposal->update([
+            'status'        => 'rejected',
+            'reject_reason' => $request->reject_reason
+        ]);
+
+        return redirect()->back()->with('success', 'Proposal telah ditolak.');
     }
 
     public function verifyProposal(Request $request, $id)

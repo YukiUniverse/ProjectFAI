@@ -20,6 +20,8 @@ class StudentActivity extends Model
         'activity_description',           // Nama acara
         'start_datetime',
         'end_datetime',
+        'interview_location',
+        'interview_date',
         'status',      // Tambahan: preparation, open_recruitment, active, finished
         'proposal_id', // Tambahan: link ke proposal pengajuan
     ];

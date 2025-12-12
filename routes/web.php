@@ -27,6 +27,7 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::get('/status-pendaftaran', [PanitiaController::class, 'statusPendaftaran'])->name('siswa.status-pendaftaran');
     Route::get('/status-proposal', [PanitiaController::class, 'statusProposal'])->name('siswa.status-proposal');
     Route::get('/proposal-ajukan', [PanitiaController::class, 'proposalAjukan'])->name('siswa.proposal-ajukan');
+    Route::post('/store-proposal', [PanitiaController::class, 'storeProposal'])->name('siswa.proposal-store');
 
     // Panitia (umum)
 
@@ -48,22 +49,24 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::get('/panitia/pengurus-excel/{activityCode}', [ExcelController::class, 'exportExcelAnggota'])->name('siswa.export_excel')->middleware('mode-bph');
     Route::post('/panitia/pengurus/pertanyaan/{activityCode}', [PanitiaController::class, 'tambahPertanyaan'])->name('siswa.tambah-pertanyaan')->middleware('mode-bph');
     Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal')->middleware('mode-panitia');
+    Route::put('/panitia/{activityCode}/interview', [PanitiaController::class, 'updateInterviewDate'])
+    ->name('student_activities.update_interview')->middleware('mode-ketua');
 
     Route::post('/panitia/saveEvaluasi/{activityCode}', [PanitiaController::class, 'saveEvaluasi'])->name('siswa.panitia-save-evaluasi')->middleware('mode-panitia');
     Route::post('/panitia/simpan-grading/{activityCode}', [PanitiaController::class, 'saveGrading'])
-        ->name('siswa.panitia-save-grading')->middleware('mode-panitia');
+        ->name('siswa.panitia-save-grading')->middleware('mode-ketua');
     Route::post('/panitia/update-status/{activityCode}', [PanitiaController::class, 'updateStatus'])
-        ->name('siswa.panitia-update-status')->middleware('mode-bph');
+        ->name('siswa.panitia-update-status')->middleware('mode-ketua');
     Route::post('/panitia/update-struktur/{activityCode}', [PanitiaController::class, 'updateStructure'])
-        ->name('siswa.panitia-update-struktur')->middleware('mode-bph');
+        ->name('siswa.panitia-update-struktur')->middleware('mode-ketua');
     // Simpan Jadwal (Perlu activityCode untuk tahu ini jadwal acara apa)
     Route::post('/panitia/store-schedule/{activityCode}', [ScheduleController::class, 'store'])->name('siswa.jadwal-store')->middleware('mode-bph');
     // Halaman Edit
-    Route::get('/panitia/edit-schedule/{id}', [ScheduleController::class, 'edit'])->name('siswa.jadwal-edit')->middleware('mode-bph');
+    Route::get('/panitia/edit-schedule/{id}/{activityCode}', [ScheduleController::class, 'edit'])->name('siswa.jadwal-edit')->middleware('mode-bph');
     // Update Data
-    Route::put('/panitia/update-schedule/{id}', [ScheduleController::class, 'update'])->name('siswa.jadwal-update')->middleware('mode-bph');
+    Route::put('/panitia/update-schedule/{id}/{activityCode}', [ScheduleController::class, 'update'])->name('siswa.jadwal-update')->middleware('mode-bph');
     // Hapus Data
-    Route::delete('/panitia/delete-schedule/{id}', [ScheduleController::class, 'destroy'])->name('siswa.jadwal-delete')->middleware('mode-bph');
+    Route::delete('/panitia/delete-schedule/{id}/{activityCode}', [ScheduleController::class, 'destroy'])->name('siswa.jadwal-delete')->middleware('mode-bph');
     // Riwayat umum
     Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
     Route::get('/activity/{activityCode}/members', [PanitiaController::class, 'showMembers'])->name('activity.members');
@@ -81,23 +84,25 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 
     // Route untuk menyimpan undangan (Invite)
     Route::post('/panitia/invite-member/{activityCode}', [MailInviteController::class, 'storeInvite'])
-        ->name('siswa.panitia-invite')->middleware('mode-bph');
+        ->name('siswa.panitia-invite')->middleware('mode-ketua');
     // Route Hapus Divisi dari Acara
-    Route::delete('/panitia/divisi-delete/{id}', [PanitiaController::class, 'deleteActivitySubRole'])
-        ->name('siswa.panitia-divisi-delete')->middleware('mode-bph');
-    Route::delete('/panitia/kick/{structureId}', [PanitiaController::class, 'kickMember'])
-        ->name('siswa.panitia-kick')->middleware('mode-bph');
+    Route::delete('/panitia/divisi-delete/{id}/{activityCode}', [PanitiaController::class, 'deleteActivitySubRole'])
+        ->name('siswa.panitia-divisi-delete')->middleware('mode-ketua');
+    Route::delete('/panitia/kick/{structureId}/{activityCode}', [PanitiaController::class, 'kickMember'])
+        ->name('siswa.panitia-kick')->middleware('mode-ketua');
 
 
 });
 // ==========================
 // 1. GROUP ADMIN
 // ==========================
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // Proposal
     Route::get('/proposal', [AdminController::class, 'proposalList'])->name('proposal-list');
+    Route::patch('/proposals/{id}/approve', [AdminController::class, 'approve'])->name('proposals.approve');
+    Route::patch('/proposals/{id}/reject', [AdminController::class, 'reject'])->name('proposals.reject');
     Route::post('/proposal/{id}/verify', [AdminController::class, 'verifyProposal'])->name('proposal-verify');
 
     // Acara (Gabungan Daftar & Laporan Acara)
@@ -114,7 +119,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // ==========================
 // 2. GROUP DOSEN
 // ==========================
-Route::middleware(['auth', 'role:lecturer'])->prefix('dosen')->name('dosen.')->group(function () {
+Route::middleware(['auth', 'check-role:lecturer'])->prefix('dosen')->name('dosen.')->group(function () {
     Route::get('/dashboard', [DosenController::class, 'dashboard'])->name('dashboard');
 
     // Laporan Acara (Dibedakan Finish/Ongoing di View)

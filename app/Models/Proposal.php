@@ -11,7 +11,10 @@ class Proposal extends Model
         'title',
         'description',
         'status',
-        'reject_reason'
+        'reject_reason',
+        'start_datetime',
+        'end_datetime',
+        'student_organization_id'
     ];
 
     // Siapa ketua yang mengajukan
@@ -24,5 +27,13 @@ class Proposal extends Model
     public function activity()
     {
         return $this->hasOne(StudentActivity::class, 'proposal_id', 'id');
+    }
+
+    // Organisasi yang mengajukan proposal (Relasi Baru)
+    public function studentOrganization()
+    {
+        // Parameter ke-2: FK di tabel proposals
+        // Parameter ke-3: PK di tabel student_organizations
+        return $this->belongsTo(StudentOrganization::class, 'student_organization_id', 'student_organization_id');
     }
 }

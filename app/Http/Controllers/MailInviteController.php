@@ -67,7 +67,7 @@ class MailInviteController extends Controller
                         'student_id'          => $student->student_id,
                     ],
                     [
-                        'student_role_id'     => null, // Default: Anggota
+                        'student_role_id'     => 3, // Default: Anggota
                         'sub_role_id'         => null,    // Default: Belum ada divisi (bisa diatur ketua nanti)
                         'structure_name'      => 'Member via Invitation',
                     ]

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') | Portal Siswa</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body { background-color: #f8f9fa; }
         .sidebar { min-height: 100vh; background-color: #198754; color: white; }
@@ -29,7 +30,7 @@
             <a href="{{ route('admin.dashboard') }}" class="{{ request()->is('admin/dashboard') ? 'active' : '' }}">🏠 Dashboard</a>
             <a href="{{ route('admin.acara-list') }}" class="{{ request()->is('admin/acara') ? 'active' : '' }}">📅 Daftar Acara</a>
             <a href="{{ route('admin.proposal-list') }}" class="{{ request()->is('admin/proposal') ? 'active' : '' }}">📄 Proposal Acara</a>
-            <a href="{{ route('admin.laporan') }}" class="{{ request()->is('admin/laporan') ? 'active' : '' }}">📊 Laporan</a>
+            {{-- <a href="{{ route('admin.laporan') }}" class="{{ request()->is('admin/laporan') ? 'active' : '' }}">📊 Laporan</a> --}} {{-- Jer tak tag sek soale error yg iki --}}
             <a href="{{ route('login') }}">🚪 Logout</a>
         </div>
         <div class="col-md-10 content">

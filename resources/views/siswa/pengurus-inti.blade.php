@@ -20,13 +20,22 @@
     <h5 class="fw-bold text-primary mb-3 mt-2">🧭 Fitur Pengurus Inti</h5>
 
     <ul class="nav nav-tabs mb-3">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#timeline">Timeline</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pertanyaan">Pertanyaan</button></li>
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pertanyaan">Pertanyaan</button></li>
+        @if($roleCode == "LEAD")
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#timeline">Timeline</button></li>
+        @endif
+        
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pendaftar">Pendaftar</button></li>
+        @if($roleCode == "LEAD")
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#struktur">Struktur</button></li>
+        @endif
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#jadwal">Jadwal</button></li>
+        @if($roleCode == "LEAD")
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#divisi">Divisi</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#hasil-evaluasi">Hasil Evaluasi</button></li>
+        @endif
+        @if($roleCode == "LEAD")
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#hasil-evaluasi">Hasil Evaluasi</button></li>
+        @endif
     </ul>
 
     {{-- Alert Messages (Ditaruh di luar tab-content agar selalu muncul) --}}
@@ -57,8 +66,10 @@
     {{-- KONTEN TAB --}}
     <div class="tab-content">
 
+        @if($roleCode == "LEAD")
+
         {{-- TAB 1: TIMELINE (Active Default) --}}
-        <div class="tab-pane fade show active" id="timeline">
+        <div class="tab-pane fade" id="timeline">
             @php
                 $steps = [
                     'preparation'      => ['label' => 'Preparation', 'desc' => 'Setting up the committee structure.'],
@@ -152,9 +163,10 @@
                 <button class="btn btn-primary col-md-2" type="submit">Update Timeline</button>
             </form>
         </div>
+        @endif
 
         {{-- TAB 2: PERTANYAAN --}}
-        <div class="tab-pane fade" id="pertanyaan">
+        <div class="tab-pane fade show active" id="pertanyaan">
             @forelse ($listPertanyaanUntukDivisi as $d)
                 <div class="card shadow-sm p-4 mb-3">
                     <h6 class="fw-bold text-secondary mt-3">Pertanyaan untuk divisi {{ $d->sub_role_name }}</h6>
@@ -209,7 +221,7 @@
                 </table>
             </div>
         </div>
-
+        @if($roleCode == "LEAD")
         {{-- TAB 4: STRUKTUR --}}
         <div class="tab-pane fade" id="struktur">
             <div class="card shadow-sm p-4">
@@ -300,7 +312,7 @@
                                                 <span class="text-muted small">-</span>
                                             @else
                                                 <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    onclick="confirmKick('{{ route('siswa.panitia-kick', $p->activity_structure_id) }}')"
+                                                    onclick="confirmKick('{{ route('siswa.panitia-kick', [$p->activity_structure_id, $activity->activity_code]) }}')"
                                                     title="Keluarkan Anggota">
                                                     <i class="bi bi-person-x"></i>
                                                 </button>
@@ -325,6 +337,7 @@
 
             </div>
         </div>
+        @endif
 
     
 
@@ -412,6 +425,7 @@
             </div>
         </div>
 
+        @if($roleCode == "LEAD")
         {{-- TAB 7: HASIL EVALUASI --}}
         <div class="tab-pane fade" id="hasil-evaluasi">
             <div class="card shadow-sm p-4">
@@ -502,7 +516,7 @@
                                             </table>
                                         @else
                                             <div class="text-center py-2">
-                                                <textarea name="grading[{{ $structId }}][manual_review]" class="form-control" placeholder="Belum ada review. Tulis review manual..."></textarea>
+                                                Belum ada review
                                             </div>
                                         @endif
                                     </div>
@@ -517,8 +531,9 @@
                 </form>
             </div>
         </div>
+        @endif
 
-
+        @if($roleCode == "LEAD")
         {{-- TAB 2: MANAJEMEN DIVISI (SUB ROLE) --}}
         <div class="tab-pane fade" id="divisi">
             <div class="row">
@@ -553,7 +568,7 @@
                                                 
                                                 <td class="text-center">
                                                     {{-- Tombol Delete (Menghapus dari acara, bukan menghapus master) --}}
-                                                    <form action="{{ route('siswa.panitia-divisi-delete', $pivot->activity_sub_roles_id) }}" 
+                                                    <form action="{{ route('siswa.panitia-divisi-delete', [$pivot->activity_sub_roles_id, $activity->activity_code]) }}" 
                                                         method="POST" 
                                                         class="d-inline"
                                                         onsubmit="return confirm('Yakin ingin menghapus divisi {{ $pivot->subRole->sub_role_name }} dari acara ini?')">
@@ -625,6 +640,7 @@
 
             </div>
         </div>
+        @endif
 
     </div> {{-- END TAB CONTENT --}}
 

@@ -30,5 +30,10 @@ class StudentOrganization extends Model
         return $this->hasMany(StudentActivity::class, 'student_organization_id', 'student_organization_id');
     }
 
-
+    public function proposals()
+    {
+        // Param 2: Foreign Key di tabel proposals
+        // Param 3: Primary Key di tabel student_organizations
+        return $this->hasMany(Proposal::class, 'student_organization_id', 'student_organization_id');
+    }
 }

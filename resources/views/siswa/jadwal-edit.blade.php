@@ -11,7 +11,7 @@
                     <h5 class="mb-0">✏️ Edit Jadwal Kegiatan</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('siswa.jadwal-update', $schedule->id) }}" method="POST">
+                    <form action="{{ route('siswa.jadwal-update', [$schedule->id, $schedule->activity->activity_code]) }}" method="POST">
                         @csrf
                         @method('PUT')
 

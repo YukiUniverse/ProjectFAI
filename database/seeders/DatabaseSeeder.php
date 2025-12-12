@@ -119,16 +119,16 @@ class DatabaseSeeder extends Seeder
         // ==========================================
 
         // Accepted Proposals (IDs 1-4)
-        $prop1 = DB::table('proposals')->insertGetId(['student_id' => 1, 'title' => 'Tech Summit 2024', 'description' => 'Proposal Accepted 1', 'status' => 'accepted', 'created_at' => now()]);
-        $prop2 = DB::table('proposals')->insertGetId(['student_id' => 1, 'title' => 'Art Gala Night', 'description' => 'Proposal Accepted 2', 'status' => 'accepted', 'created_at' => now()->subMonths(3)]);
-        $prop3 = DB::table('proposals')->insertGetId(['student_id' => 4, 'title' => 'Esports Cup', 'description' => 'Proposal Accepted 3', 'status' => 'accepted', 'created_at' => now()]);
-        $prop4 = DB::table('proposals')->insertGetId(['student_id' => 10, 'title' => 'Music Festival', 'description' => 'Proposal Accepted 4', 'status' => 'accepted', 'created_at' => now()]);
+        $prop1 = DB::table('proposals')->insertGetId(['student_id' => 1, 'title' => 'Tech Summit 2024', 'description' => 'Proposal Accepted 1', 'status' => 'accepted', 'created_at' => now(), 'start_datetime' => Carbon::now()->subDays(2), 'end_datetime' => Carbon::now()->addDays(5), 'student_organization_id' => 1]);
+        $prop2 = DB::table('proposals')->insertGetId(['student_id' => 1, 'title' => 'Art Gala Night', 'description' => 'Proposal Accepted 2', 'status' => 'accepted', 'created_at' => now()->subMonths(3), 'start_datetime' => Carbon::now()->subMonths(2) , 'end_datetime' => Carbon::now()->subMonths(2)->addDays(2), 'student_organization_id' => 1]);
+        $prop3 = DB::table('proposals')->insertGetId(['student_id' => 4, 'title' => 'Esports Cup', 'description' => 'Proposal Accepted 3', 'status' => 'accepted', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(2), 'end_datetime' => Carbon::now()->addMonths(2)->addDays(3), 'student_organization_id' => 2]);
+        $prop4 = DB::table('proposals')->insertGetId(['student_id' => 10, 'title' => 'Music Festival', 'description' => 'Proposal Accepted 4', 'status' => 'accepted', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(3), 'end_datetime' => Carbon::now()->addMonths(3)->addDays(1), 'student_organization_id' => 2]);
 
         // Rejected Proposals (IDs 5-7)
         DB::table('proposals')->insert([
-            ['student_id' => 2, 'title' => 'Bad Idea 1', 'description' => 'Rejected Reason A', 'status' => 'rejected', 'created_at' => now()],
-            ['student_id' => 3, 'title' => 'Bad Idea 2', 'description' => 'Rejected Reason B', 'status' => 'rejected', 'created_at' => now()],
-            ['student_id' => 5, 'title' => 'Bad Idea 3', 'description' => 'Rejected Reason C', 'status' => 'rejected', 'created_at' => now()],
+            ['student_id' => 2, 'title' => 'Bad Idea 1', 'description' => 'Rejected Reason A', 'status' => 'rejected', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(3), 'end_datetime' => Carbon::now()->addMonths(3)->addDays(1), 'student_organization_id' => 2],
+            ['student_id' => 3, 'title' => 'Bad Idea 2', 'description' => 'Rejected Reason B', 'status' => 'rejected', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(3), 'end_datetime' => Carbon::now()->addMonths(3)->addDays(1), 'student_organization_id' => 1],
+            ['student_id' => 5, 'title' => 'Bad Idea 3', 'description' => 'Rejected Reason C', 'status' => 'rejected', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(3), 'end_datetime' => Carbon::now()->addMonths(3)->addDays(1), 'student_organization_id' => 1],
         ]);
 
         // ==========================================
@@ -148,6 +148,8 @@ class DatabaseSeeder extends Seeder
             'activity_description' => 'An active event currently running.',
             'start_datetime' => Carbon::now()->subDays(2),
             'end_datetime' => Carbon::now()->addDays(5),
+            'interview_date' => Carbon::now()->subDays(2),
+            'interview_location' => "N-203",
             'status' => 'active',
             'created_at' => now(),
         ]);
@@ -183,6 +185,8 @@ class DatabaseSeeder extends Seeder
             'activity_description' => 'A finished successful event.',
             'start_datetime' => Carbon::now()->subMonths(2),
             'end_datetime' => Carbon::now()->subMonths(2)->addDays(2),
+            'interview_date' => Carbon::now()->subMonths(2)->addDays(1),
+            'interview_location' => "N-203",
             'status' => 'finished',
             'created_at' => now()->subMonths(3),
         ]);
@@ -222,6 +226,8 @@ class DatabaseSeeder extends Seeder
             'activity_description' => 'Just starting, blank slate.',
             'start_datetime' => Carbon::now()->addMonths(2),
             'end_datetime' => Carbon::now()->addMonths(2)->addDays(3),
+            'interview_date' => Carbon::now()->addMonths(2)->addDays(1),
+            'interview_location' => "N-203",
             'status' => 'preparation',
             'created_at' => now(),
         ]);
@@ -252,6 +258,8 @@ class DatabaseSeeder extends Seeder
             'activity_description' => 'We are looking for committees!',
             'start_datetime' => Carbon::now()->addMonths(3),
             'end_datetime' => Carbon::now()->addMonths(3)->addDays(1),
+            'interview_date' => Carbon::now()->addMonths(3)->addDays(1),
+            'interview_location' => "N-203",
             'status' => 'open_recruitment',
             'created_at' => now(),
         ]);

@@ -112,12 +112,12 @@
 
                                         <td class="text-center">
                                             <!-- Tombol Edit -->
-                                            <a href="{{ route('siswa.jadwal-edit', $j->id) }}" class="btn btn-sm btn-warning">
+                                            <a href="{{ route('siswa.jadwal-edit', [$j->id, $activity->activity_code]) }}" class="btn btn-sm btn-warning">
                                                 <i class="bi bi-pencil-square"></i> Edit
                                             </a>
 
                                             <!-- Tombol Delete -->
-                                            <form action="{{ route('siswa.jadwal-delete', $j->id) }}" method="POST"
+                                            <form action="{{ route('siswa.jadwal-delete', [$j->id, $activity->activity_code]) }}" method="POST"
                                                 style="display:inline-block;"
                                                 onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
                                                 @csrf
