@@ -786,13 +786,20 @@ class PanitiaController extends Controller
         // Tambahkan ->firstOrFail() untuk eksekusi query & throw 404 jika tidak ketemu
         $activity = StudentActivity::where("activity_code", $activityCode)->firstOrFail();
 
+        $user = Auth::user();
+        $roleCode = ActivityStructure::where('student_activity_id', $activity->student_activity_id)
+        ->where('student_id', $user->student->student_id)
+        ->with('role')
+        ->firstOrFail()
+        ->role->role_code; // Mengakses langsung property dari relasi
+
         // 2. Ambil daftar anggota dari tabel ActivityStructure
         $members = ActivityStructure::with(['student', 'role', 'subRole'])
             ->where('student_activity_id', $activity->student_activity_id)
             ->get();
 
         // 3. Kembalikan ke view
-        return view('siswa.members', compact('activity', 'members'));
+        return view('siswa.members', compact('activity', 'members', 'roleCode'));
     }
 
 }

@@ -83,7 +83,7 @@
         </div>
     </div>
 </div>
-
+    @if($roleCode == "LEAD")
 {{-- Tombol Download Excel (Di Paling Bawah) --}}
 <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-5">
     {{-- 
@@ -95,5 +95,6 @@
         <i class="bi bi-file-earmark-excel-fill me-2"></i> Download Excel
     </a>
 </div>
+@endif
 
 @endsection

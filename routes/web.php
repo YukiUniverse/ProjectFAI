@@ -46,7 +46,7 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
 
     Route::get('/panitia/detail/{activityCode}', [PanitiaController::class, 'panitiaDetail'])->name('siswa.panitia-detail')->middleware('mode-panitia');
     Route::get('/panitia/pengurus/{activityCode}', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus')->middleware('mode-bph');
-    Route::get('/panitia/pengurus-excel/{activityCode}', [ExcelController::class, 'exportExcelAnggota'])->name('siswa.export_excel')->middleware('mode-bph');
+    Route::get('/panitia/pengurus-excel/{activityCode}', [ExcelController::class, 'exportExcelAnggota'])->name('siswa.export_excel')->middleware('mode-ketua');
     Route::post('/panitia/pengurus/pertanyaan/{activityCode}', [PanitiaController::class, 'tambahPertanyaan'])->name('siswa.tambah-pertanyaan')->middleware('mode-bph');
     Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal')->middleware('mode-panitia');
     Route::put('/panitia/{activityCode}/interview', [PanitiaController::class, 'updateInterviewDate'])
@@ -70,7 +70,7 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     // Riwayat umum
     Route::get('/riwayat/acara', [PanitiaController::class, 'riwayatAcara'])->name('siswa.riwayat-acara');
     Route::get('/activity/{activityCode}/members', [PanitiaController::class, 'showMembers'])->name('activity.members');
-    Route::get('/activity/{activityCode}/export', [ExcelController::class, 'exportExcel'])->name('activity.export_excel')->middleware('mode-bph');
+    Route::get('/activity/{activityCode}/export', [ExcelController::class, 'exportExcel'])->name('activity.export_excel')->middleware('mode-ketua');
 
     Route::get('/invitations', [MailInviteController::class, 'index'])->name('siswa.invites.index');
     Route::post('/invitations/{id}', [MailInviteController::class, 'respond'])->name('siswa.invites.respond');
