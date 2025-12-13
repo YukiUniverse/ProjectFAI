@@ -1,107 +1,226 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') | Portal Siswa</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>@yield('title') | Portal Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        body { background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background-color: #198754; color: white; }
-        .sidebar a { color: white; text-decoration: none; display: block; padding: 10px 15px; border-radius: 8px; }
-        .sidebar a:hover, .sidebar a.active { background-color: rgba(255,255,255,0.2); }
-        .content { padding: 30px; }
-        .navbar { background-color: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-    </style>
-</head>
-<body>
+        :root {
+            --primary-color: #198754;
+            --primary-dark: #0f5132;
+            --sidebar-width: 280px;
+            --bg-color: #f3f4f6;
+        }
 
-<nav class="navbar navbar-expand-lg navbar-light sticky-top">
-    <div class="container-fluid">
-        <span class="navbar-brand fw-bold " style="color:#198754;">Portal Siswa</span>
-    </div>
-</nav>
-
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar p-3">
-            <h5 class="fw-bold mb-3">Admin Panel</h5>
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->is('admin/dashboard') ? 'active' : '' }}">🏠 Dashboard</a>
-            <a href="{{ route('admin.acara-list') }}" class="{{ request()->is('admin/acara') ? 'active' : '' }}">📅 Daftar Acara</a>
-            <a href="{{ route('admin.proposal-list') }}" class="{{ request()->is('admin/proposal') ? 'active' : '' }}">📄 Proposal Acara</a>
-            {{-- <a href="{{ route('admin.laporan') }}" class="{{ request()->is('admin/laporan') ? 'active' : '' }}">📊 Laporan</a> --}} {{-- Jer tak tag sek soale error yg iki --}}
-            <a href="{{ route('login') }}">🚪 Logout</a>
-        </div>
-        <div class="col-md-10 content">
-            @yield('content')
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{{-- <!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') | Panel Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
         body {
-            background-color: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
         }
+
+        /* --- MODERN SIDEBAR --- */
         .sidebar {
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             min-height: 100vh;
-            background-color: #198754;
             color: white;
-            padding-top: 1rem;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1045;
+            transition: all 0.3s ease;
         }
-        .sidebar a {
-            color: white;
-            display: block;
-            padding: 10px 15px;
+
+        /* Brand Logo Area */
+        .sidebar-brand {
+            font-size: 1.4rem;
+            font-weight: 600;
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Navigation Links */
+        .nav-link-custom {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin-bottom: 8px;
+            border-radius: 12px;
             text-decoration: none;
-            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
         }
-        .sidebar a:hover, .sidebar a.active {
-            background-color: rgba(255,255,255,0.2);
+
+        .nav-link-custom i {
+            margin-right: 12px;
+            font-size: 1.2rem;
         }
+
+        /* Hover Effect */
+        .nav-link-custom:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        /* Active State (Glassmorphism Pill) */
+        .nav-link-custom.active {
+            background-color: white;
+            color: var(--primary-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+        }
+
+        /* Section Headers */
+        .nav-header {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 20px 0 10px 15px;
+            font-weight: 600;
+        }
+
+        /* Logout Button */
+        .btn-logout {
+            color: #ffcccc;
+            transition: 0.3s;
+        }
+
+        .btn-logout:hover {
+            color: #fff;
+            background: rgba(220, 53, 69, 0.2);
+            border-radius: 10px;
+        }
+
+        /* --- CONTENT AREA --- */
         .content {
             padding: 2rem;
+            min-height: 100vh;
+        }
+
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: var(--sidebar-width);
+                min-height: 100%;
+            }
+
+            .content {
+                padding: 1rem;
+                padding-top: 1.5rem;
+            }
+
+            /* Stylish Mobile Navbar */
+            .mobile-nav {
+                background: white;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                padding: 10px 20px;
+                border-radius: 0 0 15px 15px;
+            }
+
+            .mobile-brand {
+                color: var(--primary-color);
+                font-weight: 700;
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
-<body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 sidebar">
-           
-        </nav>
 
-        <!-- Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 content">
-            @yield('content')
-        </main>
+<body>
+
+    <nav class="navbar mobile-nav d-md-none fixed-top">
+        <div class="d-flex align-items-center w-100 justify-content-between">
+            <span class="mobile-brand"><i class="bi bi-shield-lock-fill me-2"></i>Portal Admin</span>
+            <button class="btn btn-light text-success border-0 shadow-sm" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                <i class="bi bi-list fs-4"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="d-md-none" style="height: 70px;"></div>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+
+            <div class="col-md-2 sidebar offcanvas-md offcanvas-start" tabindex="-1" id="sidebarMenu"
+                aria-labelledby="sidebarMenuLabel">
+
+                <div class="d-md-none d-flex justify-content-end p-3">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                        data-bs-target="#sidebarMenu" aria-label="Close"></button>
+                </div>
+
+                <div class="px-3">
+                    <div class="sidebar-brand d-none d-md-flex align-items-center">
+                        <i class="bi bi-shield-lock-fill me-2"></i> Oprec ISTTS
+                    </div>
+
+                    <div class="mt-2">
+                        <div class="nav-header">Utama</div>
+
+                        <a href="{{ route('admin.dashboard') }}"
+                            class="nav-link-custom {{ request()->routeIs('admin.dashboard') || request()->is('admin/dashboard') ? 'active' : '' }}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+
+                        <div class="nav-header">Manajemen Acara</div>
+
+                        <a href="{{ route('admin.acara-list') }}"
+                            class="nav-link-custom {{ request()->routeIs('admin.acara-list') || request()->is('admin/acara') ? 'active' : '' }}">
+                            <i class="bi bi-calendar-check"></i> Daftar Acara
+                        </a>
+
+                        <a href="{{ route('admin.proposal-list') }}"
+                            class="nav-link-custom {{ request()->routeIs('admin.proposal-list') || request()->is('admin/proposal') ? 'active' : '' }}">
+                            <i class="bi bi-file-earmark-text"></i> Proposal Acara
+                        </a>
+
+                        <div class="nav-header">Laporan & Monitoring</div>
+
+
+                        <a href="{{ route('admin.laporan-mahasiswa') }}"
+                            class="nav-link-custom {{ request()->routeIs('dosen.laporan-mahasiswa*') ? 'active' : '' }}">
+                            <i class="bi bi-people-fill"></i> Laporan Mahasiswa
+                        </a>
+
+                        {{--
+                        <a href="{{ route('admin.laporan') }}"
+                            class="nav-link-custom {{ request()->is('admin/laporan') ? 'active' : '' }}">
+                            <i class="bi bi-bar-chart-line"></i> Laporan
+                        </a>
+                        --}}
+                    </div>
+
+                    <div class="mt-5 pt-3 border-top border-white-50">
+                        <form action="{{ route('logout') }}" method="POST"> @csrf
+                            <button type="submit" class="btn btn-link nav-link-custom btn-logout w-100 text-start ps-3">
+                                <i class="bi bi-box-arrow-left"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-10 content">
+                <div class="fade-in">
+                    @yield('content')
+                </div>
+            </div>
+
+        </div>
     </div>
-</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html> --}}
+
+</html>

@@ -4,205 +4,235 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Login | Portal</title>
+    <title>Login | Portal Registrasi</title>
 
-    <!-- Bootstrap CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
         body {
-            background: linear-gradient(180deg, #eef8f1 0%, #ffffff 100%);
-            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            /* Prevent scroll on desktop */
+        }
+
+        /* --- SPLIT SCREEN LAYOUT --- */
+        .login-wrapper {
+            height: 100vh;
+            display: flex;
+            width: 100%;
+        }
+
+        /* Left Side: Visuals */
+        .left-panel {
+            /* IMPORTANT: REPLACE THE URL BELOW WITH YOUR OWN IMAGE PATH
+               Example for Laravel: url('{{ asset('images/login-bg.jpg') }}')
+            */
+            background:
+                /* Top Layer: Green Gradient Overlay (for text readability) */
+                linear-gradient(rgba(25, 135, 84, 0.5),
+                    /* Primary green, 80% opacity */
+                    rgba(15, 81, 50, 0.7)
+                    /* Darker green, 90% opacity */
+                ),
+                /* Bottom Layer: The Image */
+                url("{{ asset('storage/images/background-gedung-29.jpg') }}") no-repeat center center;
+
+            background-size: cover;
+            /* Ensures image covers the whole area */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem;
+            position: relative;
+        }
+
+        /* Decorative Circle */
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            bottom: -100px;
+            left: -100px;
+        }
+
+        /* Right Side: Form */
+        .right-panel {
+            background-color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+            padding: 2rem;
         }
 
-        .card-login {
+        .login-card {
             width: 100%;
-            max-width: 480px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            max-width: 400px;
         }
 
-        .brand {
-            font-weight: 700;
-            color: #198754;
+        /* --- FORM STYLING --- */
+        .form-control {
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            font-size: 0.95rem;
+            transition: all 0.3s;
         }
 
-        .form-note {
-            font-size: .9rem;
-            color: #6b7280;
+        .form-control:focus {
+            background-color: #fff;
+            border-color: #198754;
+            box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.1);
         }
 
-        .star {
-            color: #ffc107;
+        .input-group-text {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            color: #6c757d;
+        }
+
+        /* Fix border radius for inputs in groups */
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .btn-success {
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            background: #198754;
+            border: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(25, 135, 84, 0.2);
+        }
+
+        .btn-success:hover {
+            background: #146c43;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(25, 135, 84, 0.3);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .left-panel {
+                display: none;
+                /* Hide visual side on mobile */
+            }
+
+            body {
+                overflow-y: auto;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="card card-login shadow-sm">
-        <div class="card-body p-4">
-            <div class="text-center mb-3">
-                <div class="mb-2">
-                    <span class="brand fs-4">Portal Registrasi Panitia</span>
-                </div>
-                <div class="form-note">Silakan login sebagai <strong>siswa</strong>, <strong>admin</strong>, atau
-                    <strong>dosen</strong>.
+    <div class="container-fluid p-0">
+        <div class="row g-0 login-wrapper">
+
+            <div class="col-md-7 left-panel d-none d-md-flex">
+                <div style="z-index: 2;">
+                    <div class="mb-4">
+                        <i class="bi bi-mortarboard-fill display-3"></i>
+                    </div>
+                    <h1 class="fw-bold display-5 mb-3">Selamat Datang</h1>
+                    <p class="fs-5 opacity-75 mb-4">Student recruitment, activities and histories all in one place</p>
                 </div>
             </div>
 
-            <form id="loginForm" autocomplete="off" action="{{ route('tryLogin') }}" method="post" novalidate>
-                @csrf
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <input id="username" name="username" type="text" class="form-control"
-                        placeholder="masukkan username" required value="{{ old('username') }}">
-                </div>
+            <div class="col-md-5 right-panel">
+                <div class="login-card fade-in">
 
-                <div class="mb-3 position-relative">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-group">
-                        <input id="password" name="password" type="password" class="form-control"
-                            placeholder="masukkan password" required>
-                        <button class="btn btn-outline-secondary" type="button" id="togglePwd"
-                            title="Tampilkan / Sembunyikan">
-                            👁
-                        </button>
+                    <div class="text-center mb-4 d-md-none">
+                        <i class="bi bi-mortarboard-fill text-success fs-1"></i>
+                        <h3 class="fw-bold mt-2">Portal Siswa</h3>
                     </div>
-                </div>
 
-                <div class="mb-3 d-flex justify-content-between align-items-center">
-                    <div>
-                        <input id="remember" type="checkbox" class="form-check-input me-1">
-                        <label for="remember" class="form-check-label small">Ingat saya</label>
+                    <div class="mb-5">
+                        <h2 class="fw-bold text-dark">Login Akun</h2>
                     </div>
-                    <div>
-                        <button type="button" class="btn btn-sm btn-link p-0" id="demoCred">Lihat contoh
-                            kredensial</button>
-                    </div>
+
+                    <form id="loginForm" autocomplete="off" action="{{ route('tryLogin') }}" method="post" novalidate>
+                        @csrf
+
+                        <div class="mb-4">
+                            <label for="username"
+                                class="form-label fw-medium small text-muted text-uppercase">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input id="username" name="username" type="text" class="form-control"
+                                    placeholder="Masukkan username" required value="{{ old('username') }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password"
+                                class="form-label fw-medium small text-muted text-uppercase">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input id="password" name="password" type="password" class="form-control"
+                                    placeholder="Masukkan password" required>
+                                <button class="btn btn-outline-light border text-muted" type="button" id="togglePwd"
+                                    style="border-color: #e0e0e0 !important; border-left: none !important; border-radius: 0 10px 10px 0; font-size: 1.2rem;">
+                                    👁
+                                </button>
+                            </div>
+                        </div>
+
+                        @if ($errors->has('username'))
+                            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <div>{{ $errors->first('username') }}</div>
+                            </div>
+                        @endif
+
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-success btn-lg">Masuk Sekarang</button>
+                        </div>
+
+                        <div class="text-center">
+                            <small class="text-muted">Ada kendala login? <a href="#"
+                                    class="text-success text-decoration-none fw-bold">Hubungi Admin</a></small>
+                            <div class="mt-4 border-top pt-3">
+                                <a href="{{ route('dummy') }}" class="text-muted small text-decoration-none me-3">Data
+                                    Dummy</a>
+                                <span class="text-muted small">© {{ date('Y') }} Kampus</span>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-
-                @if ($errors->has('username'))
-                    <div id="alertBox" class="alert alert-danger" role="alert">
-                        {{ $errors->first('username') }}
-                    </div>
-                @endif
-
-
-                <div class="d-grid mb-3">
-                    <button type="submit" class="btn btn-success">Masuk</button>
-                </div>
-
-                <div class="text-center">
-                    <small class="text-muted">Tidak punya akun? Hubungi admin kampus.</small>
-                </div>
-            </form>
-        </div>
-
-        <div class="card-footer bg-transparent border-top px-4 py-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="{{ route('dummy') }}">
-                    <small class="text-muted">Lihat data dummy</small>
-                </a>
-                <small class="text-muted">© Kampus</small>
             </div>
+
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         (function () {
-            const validCredentials = {
-                siswa: 'siswa',
-                admin: 'admin',
-                dosen: 'dosen'
-            };
-
-            const loginForm = document.getElementById('loginForm');
-            const alertBox = document.getElementById('alertBox');
             const togglePwd = document.getElementById('togglePwd');
             const passwordField = document.getElementById('password');
-            const demoBtn = document.getElementById('demoCred');
 
-            // Toggle password visibility
             togglePwd.addEventListener('click', () => {
+                // Toggle the type attribute
                 const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordField.setAttribute('type', type);
+
+                // Toggle the Emoji: Eye (👁) vs Monkey (🙈)
                 togglePwd.textContent = type === 'password' ? '👁' : '🙈';
             });
-
-            // Show demo credentials in a small toast/alert
-            demoBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                alertBox.classList.remove('d-none', 'alert-danger');
-                alertBox.classList.add('alert-info');
-                alertBox.innerHTML = `<strong>Contoh:</strong> siswa / siswa &nbsp; | &nbsp; admin / admin &nbsp; | &nbsp; dosen / dosen`;
-                setTimeout(() => {
-                    alertBox.classList.add('d-none');
-                    alertBox.classList.remove('alert-info');
-                }, 6000);
-            });
-
-            // Form submit
-            /* 
-            loginForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                alertBox.classList.add('d-none');
-                alertBox.classList.remove('alert-info');
-
-                const username = (document.getElementById('username').value || '').trim().toLowerCase();
-                const password = (document.getElementById('password').value || '').trim();
-
-                if (!username || !password) {
-                    showError('Isi username dan password terlebih dahulu.');
-                    return;
-                }
-
-                // Check credentials
-                if (validCredentials[username] && validCredentials[username] === password) {
-                    // Simulate login: redirect based on role
-                    let target = '/';
-                    if (username === 'siswa') target = '/siswa/dashboard';
-                    if (username === 'admin') target = '/admin/dashboard';
-                    if (username === 'dosen') target = '/dosen/dashboard';
-
-                    // Optional: simpan role di localStorage jika "remember" dicentang
-                    const remember = document.getElementById('remember').checked;
-                    if (remember) {
-                        try {
-                            localStorage.setItem('portal_role', username);
-                        } catch (err) {
-                            // ignore
-                        }
-                    }
-
-                    // small success message then redirect
-                    alertBox.classList.remove('d-none', 'alert-danger');
-                    alertBox.classList.add('alert-success');
-                    alertBox.textContent = 'Login berhasil. Mengarahkan ke dashboard...';
-
-                    setTimeout(() => {
-                        window.location.href = target;
-                    }, 600);
-                    return;
-                }
-
-                // invalid
-                showError('Username atau password salah. Cek kembali kredensial.');
-            });
-
-            function showError(msg) {
-                alertBox.classList.remove('d-none');
-                alertBox.classList.add('alert-danger');
-                alertBox.textContent = msg;
-            }
-            */
         })();
     </script>
 

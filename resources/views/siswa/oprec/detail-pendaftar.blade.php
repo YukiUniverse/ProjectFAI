@@ -220,8 +220,8 @@
                                             <select name="final_status" id="finalStatusSelect"
                                                 class="form-select form-select-lg" required>
                                                 <option value="" disabled selected>-- Putuskan --</option>
-                                                <option value="accepted" class="text-success fw-bold">✅ DITERIMA</option>
-                                                <option value="rejected" class="text-danger fw-bold">🚫 DITOLAK</option>
+                                                <option value="accepted" class="text-success">✅ DITERIMA</option>
+                                                <option value="rejected" class="text-danger">🚫 DITOLAK</option>
                                             </select>
                                         </div>
 

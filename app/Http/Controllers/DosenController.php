@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RecruitmentRegistration;
 use App\Models\Student;
 use App\Models\StudentRating;
 use App\Models\StudentActivity;
@@ -11,29 +12,29 @@ use Illuminate\Http\Request;
 class DosenController extends Controller
 {
     public function dashboard()
-        {
-            // Dashboard Dosen: Menampilkan daftar Mahasiswa dengan KPI Terbaru
-            // Mengambil semua mahasiswa agar dosen bisa mencari siapa saja
-            $students = Student::with('department')->limit(100)->get();
+    {
+        // Dashboard Dosen: Menampilkan daftar Mahasiswa dengan KPI Terbaru
+        // Mengambil semua mahasiswa agar dosen bisa mencari siapa saja
+        $students = Student::with('department')->limit(100)->get();
 
-            foreach ($students as $student) {
-                $avg = StudentRating::where('rated_student_id', $student->student_id)->avg('stars');
-                $student->kpi_score = $avg ? number_format($avg, 1) : '-';
-                
-                // Acara terakhir
-                $last = ActivityStructure::where('student_id', $student->student_id)->latest()->first();
-                $student->last_active = $last ? $last->created_at->format('d M Y') : '-';
-            }
+        foreach ($students as $student) {
+            $avg = StudentRating::where('rated_student_id', $student->student_id)->avg('stars');
+            $student->kpi_score = $avg ? number_format($avg, 1) : '-';
 
-            return view('dosen.dashboard', compact('students'));
+            // Acara terakhir
+            $last = ActivityStructure::where('student_id', $student->student_id)->latest()->first();
+            $student->last_active = $last ? $last->created_at->format('d M Y') : '-';
         }
+
+        return view('dosen.dashboard', compact('students'));
+    }
 
 
     // --- REVISI: LAPORAN ACARA (PISAH FINISHED & ONGOING) ---
     public function laporanAcara()
     {
         $allActivities = StudentActivity::orderBy('start_datetime', 'desc')->get();
-        
+
         $ongoing = $allActivities->whereIn('status', ['active', 'preparation', 'open_recruitment', 'interview', 'grading_1', 'grading_2']);
         $finished = $allActivities->where('status', 'finished');
 
@@ -43,7 +44,7 @@ class DosenController extends Controller
     public function laporanAcaraDetail($id)
     {
         $activity = StudentActivity::findOrFail($id);
-        
+
         // Ambil mahasiswa yang jadi panitia di acara ini
         $participants = ActivityStructure::with(['student.department', 'role', 'subRole'])
             ->where('student_activity_id', $id)
@@ -68,12 +69,16 @@ class DosenController extends Controller
             // Logika KPI rata-rata dipindah kesini
             $avg = StudentRating::where('rated_student_id', $student->student_id)->avg('stars');
             $student->kpi_score = $avg ? number_format($avg, 1) : '-';
-            
+
             // Predikat
-            if ($avg >= 3.5) $student->predikat = 'Sangat Baik';
-            elseif ($avg >= 3.0) $student->predikat = 'Baik';
-            elseif ($avg > 0) $student->predikat = 'Cukup';
-            else $student->predikat = '-';
+            if ($avg >= 3.5)
+                $student->predikat = 'Sangat Baik';
+            elseif ($avg >= 3.0)
+                $student->predikat = 'Baik';
+            elseif ($avg > 0)
+                $student->predikat = 'Cukup';
+            else
+                $student->predikat = '-';
         }
 
         return view('dosen.laporan-mahasiswa', compact('students'));
@@ -81,7 +86,7 @@ class DosenController extends Controller
     public function laporanMahasiswaDetail($id)
     {
         $student = Student::with('department')->findOrFail($id);
-        
+
         // 1. Ambil History Pendaftaran (Diterima / Ditolak / Pending)
         // Gunakan RecruitmentRegistration untuk melihat semua history lamaran
         $historyApplications = RecruitmentRegistration::with(['activityDetail', 'firstChoice'])
@@ -89,18 +94,32 @@ class DosenController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // 2. Ambil Data KPI per Acara (Hanya untuk acara yang dia diterima & dinilai)
-        // Kita loop history di atas nanti di view, lalu cocokkan dengan rating
-        foreach($historyApplications as $app) {
-            // Cari rating yang dia dapatkan di acara tersebut
-            $rating = StudentRating::where('student_activity_id', $app->student_activity_id)
+
+
+        $histories = ActivityStructure::with(['activity', 'role', 'subRole'])
+            ->where('student_id', $id)
+            ->whereHas('activity', function ($q) {
+                // vvv TAMBAHKAN FILTER INI vvv
+                $q->where('status', 'finished')
+                    ->orderBy('start_datetime', 'desc');
+            })
+            ->get();
+
+        // 3. Hitung Nilai KPI (Rata-rata Bintang) per Acara
+        foreach ($histories as $h) {
+            $avgStars = StudentRating::where('student_activity_id', $h->student_activity_id)
                 ->where('rated_student_id', $id)
-                ->avg('stars'); // Ambil rata-rata jika ada multiple rater
-            
-            $app->kpi_score = $rating ? number_format($rating, 1) : '-';
+                ->avg('stars');
+
+            $h->kpi_score = $avgStars ? number_format($avgStars, 1) : 0;
         }
 
-        return view('dosen.laporan-mahasiswa-detail', compact('student', 'historyApplications'));
+        // 4. Hitung Statistik Keseluruhan
+        $scoredActivities = $histories->where('kpi_score', '>', 0);
+        $overallKpi = $scoredActivities->count() > 0 ? number_format($scoredActivities->avg('kpi_score'), 1) : '0.0';
+        $totalEvent = $histories->count();
+
+        return view('dosen.laporan-mahasiswa-detail', compact('student', 'historyApplications', 'histories', 'overallKpi', 'totalEvent'));
     }
 
 }

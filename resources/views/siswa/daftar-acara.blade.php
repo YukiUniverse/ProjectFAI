@@ -6,7 +6,7 @@
 
     <div class="row">
         @forelse($acara as $a)
-            <div class="col-md-4 mb-3">
+            <div class="col-md-5 mb-3">
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h5>{{ $a->activity_name }}</h5>
@@ -14,15 +14,16 @@
                         @if($a->interview_date)
                             {{-- Badge Tanggal & Jam --}}
                             <span class="badge bg-light text-dark border mb-1">
-                                <i class="far fa-clock text-primary me-1"></i> 
-                                Interview Date: {{ \Carbon\Carbon::parse($a->interview_date)->translatedFormat('l, d/m/Y - H:i') }} WIB
+                                <i class="far fa-clock text-primary me-1"></i>
+                                Interview Date: {{ \Carbon\Carbon::parse($a->interview_date)->translatedFormat('l, d/m/Y - H:i') }}
+                                WIB
                             </span>
 
                             {{-- Badge Lokasi (Hanya muncul jika ada) --}}
                             @if($a->interview_location)
                                 <br> {{-- Baris baru agar rapi ke bawah --}}
                                 <span class="badge bg-light text-dark border mb-2">
-                                    <i class="fas fa-map-marker-alt text-danger me-1"></i> 
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i>
                                     Ruangan: {{ $a->interview_location }}
                                 </span>
                             @endif

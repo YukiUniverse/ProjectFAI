@@ -8,6 +8,7 @@
             <a href="{{ route('siswa.panitia-pengurus', $activity->activity_code) }}" class="btn btn-primary">Mode BPH</a>
         @endif
     </div>
+    <br>
 
     <div class="card shadow-sm mb-4 p-4">
         <h4 class="fw-bold text-primary">{{$activity->activity_name}}</h4>
@@ -78,7 +79,7 @@
                 <h5 class="fw-bold text-primary mb-3">📅 Jadwal & Kegiatan</h5>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle">
+                    <table class="table table-bordered data_table align-middle">
                         <thead class="table-success text-center">
                             <tr>
                                 <th>Tanggal & Waktu</th>
@@ -112,13 +113,14 @@
 
                                         <td class="text-center">
                                             <!-- Tombol Edit -->
-                                            <a href="{{ route('siswa.jadwal-edit', [$j->id, $activity->activity_code]) }}" class="btn btn-sm btn-warning">
+                                            <a href="{{ route('siswa.jadwal-edit', [$j->id, $activity->activity_code]) }}"
+                                                class="btn btn-sm btn-warning">
                                                 <i class="bi bi-pencil-square"></i> Edit
                                             </a>
 
                                             <!-- Tombol Delete -->
-                                            <form action="{{ route('siswa.jadwal-delete', [$j->id, $activity->activity_code]) }}" method="POST"
-                                                style="display:inline-block;"
+                                            <form action="{{ route('siswa.jadwal-delete', [$j->id, $activity->activity_code]) }}"
+                                                method="POST" style="display:inline-block;"
                                                 onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
                                                 @csrf
                                                 @method('DELETE')

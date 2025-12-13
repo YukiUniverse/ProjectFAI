@@ -164,9 +164,9 @@ class PanitiaController extends Controller
         // 2. Ambil Proposal milik student tersebut
         // Menggunakan 'with' agar query efisien (Eager Loading organisasi)
         $proposals = Proposal::with('studentOrganization')
-                        ->where('student_id', $studentId)
-                        ->orderBy('created_at', 'desc') // Urutkan dari yang terbaru
-                        ->get();
+            ->where('student_id', $studentId)
+            ->orderBy('created_at', 'desc') // Urutkan dari yang terbaru
+            ->get();
         return view('siswa.status-proposal', compact('proposals'));
     }
 
@@ -192,8 +192,8 @@ class PanitiaController extends Controller
         // 2. Tambahkan ID Mahasiswa yang sedang login
         // Asumsi: User yang login terhubung ke tabel students
         // Sesuaikan 'student' dengan nama relasi di model User Anda
-        $validated['student_id'] = Auth::user()->student->student_id; 
-        
+        $validated['student_id'] = Auth::user()->student->student_id;
+
         // Set status default
         $validated['status'] = 'pending';
 
@@ -272,11 +272,11 @@ class PanitiaController extends Controller
 
             $user = Auth::user();
             $roleCode = ActivityStructure::where('student_activity_id', $activity->student_activity_id)
-            ->where('student_id', $user->student->student_id)
-            ->with('role')
-            ->firstOrFail()
-            ->role->role_code; // Mengakses langsung property dari relasi
-            return view('siswa.preparation.dashboard', compact('activity', 'panitia', 'jadwal', 'existingRatings', 'listDivisi', 'panitiaList', 'roles', 'currentDivisions', 'availableSubRoles', 'subRoles','roleCode'));
+                ->where('student_id', $user->student->student_id)
+                ->with('role')
+                ->firstOrFail()
+                ->role->role_code; // Mengakses langsung property dari relasi
+            return view('siswa.preparation.dashboard', compact('activity', 'panitia', 'jadwal', 'existingRatings', 'listDivisi', 'panitiaList', 'roles', 'currentDivisions', 'availableSubRoles', 'subRoles', 'roleCode'));
         }
         $currUserInActivity = ActivityStructure::with(['activity', 'student', 'role', 'subRole']) // Load both relationships
             ->whereHas('activity', function ($query) use ($activityCode) {
@@ -296,13 +296,13 @@ class PanitiaController extends Controller
     {
         // 1. Validasi Input
         $request->validate([
-            'interview_date'     => 'required|date',
+            'interview_date' => 'required|date',
             'interview_location' => 'nullable|string|max:255', // Validasi kolom baru
         ]);
 
         // 2. Cari Data berdasarkan Activity Code
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
-        
+
         // 3. Update Data
         $activity->interview_date = $request->interview_date;
         $activity->interview_location = $request->interview_location; // Simpan lokasi
@@ -381,11 +381,11 @@ class PanitiaController extends Controller
 
         $user = Auth::user();
         $roleCode = ActivityStructure::where('student_activity_id', $activity->student_activity_id)
-        ->where('student_id', $user->student->student_id)
-        ->with('role')
-        ->firstOrFail()
-        ->role->role_code; // Mengakses langsung property dari relasi
-       
+            ->where('student_id', $user->student->student_id)
+            ->with('role')
+            ->firstOrFail()
+            ->role->role_code; // Mengakses langsung property dari relasi
+
 
         return view('siswa.pengurus-inti', compact('activity', 'dataPanitia', 'listDivisi', 'listPertanyaanUntukDivisi', 'panitiaList', 'allRatings', 'roles', 'listPendaftar', 'currentDivisions', 'subRoles', 'availableSubRoles', 'roleCode'));
     }
@@ -689,6 +689,24 @@ class PanitiaController extends Controller
         return back()->with('success', 'Berhasil menambah pertanyaan');
     }
 
+    public function editPertanyaan(Request $request, $activityCode, $id)
+    {
+        $validated = $request->validate([
+            'question' => 'required|string',
+        ]);
+        $question = RecruitmentQuestion::where('id', $id)->firstOrFail();
+        $question->question = $validated['question'];
+        $question->save();
+        return back()->with('success', 'Berhasil update pertanyaan');
+    }
+
+    public function deletePertanyaan(Request $request, $activityCode, $id)
+    {
+        $question = RecruitmentQuestion::where('id', $id)->firstOrFail();
+        $question->delete();
+        return back()->with('success', 'Berhasil delete pertanyaan');
+    }
+
 
 
     public function panitiaJadwal()
@@ -796,10 +814,10 @@ class PanitiaController extends Controller
 
         $user = Auth::user();
         $roleCode = ActivityStructure::where('student_activity_id', $activity->student_activity_id)
-        ->where('student_id', $user->student->student_id)
-        ->with('role')
-        ->firstOrFail()
-        ->role->role_code; // Mengakses langsung property dari relasi
+            ->where('student_id', $user->student->student_id)
+            ->with('role')
+            ->firstOrFail()
+            ->role->role_code; // Mengakses langsung property dari relasi
 
         // 2. Ambil daftar anggota dari tabel ActivityStructure
         $members = ActivityStructure::with(['student', 'role', 'subRole'])

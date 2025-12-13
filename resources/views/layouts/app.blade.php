@@ -8,6 +8,7 @@
     <!-- Ensure Bootstrap 5 CSS is loaded -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.5/css/dataTables.dataTables.min.css">
     <style>
         /* Custom Sidebar Styling */
         .sidebar-link {
@@ -163,7 +164,7 @@
 
             <!-- Brand -->
             <a class="navbar-brand fw-bold me-auto" href="#" style="color:#198754;">
-                🎓 Portal Siswa
+                🎓 Oprec ISTTS
             </a>
 
             <div class="d-flex align-items-center">
@@ -267,6 +268,17 @@
 
     <!-- Bootstrap 5 JS (Required for the Mobile Sidebar Toggle) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/2.3.5/js/dataTables.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            $.fn.dataTable.ext.errMode = 'none';
+            document.querySelectorAll('.data_table').forEach(function (table) {
+                new DataTable(table);
+            });
+        });
+    </script>
 </body>
 
 </html>

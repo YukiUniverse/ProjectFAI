@@ -29,7 +29,6 @@
         @if($roleCode == "LEAD")
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#struktur">Struktur</button></li>
         @endif
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#jadwal">Jadwal</button></li>
         @if($roleCode == "LEAD")
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#divisi">Divisi</button></li>
         @endif
@@ -170,22 +169,58 @@
             @forelse ($listPertanyaanUntukDivisi as $d)
                 <div class="card shadow-sm p-4 mb-3">
                     <h6 class="fw-bold text-secondary mt-3">Pertanyaan untuk divisi {{ $d->sub_role_name }}</h6>
-                    <ol>
-                        @forelse($d->activityQuestions as $question)
-                            <li>{{ $question->question }}</li>
-                        @empty
-                            <li class="text-muted">Belum ada pertanyaan.</li>
-                        @endforelse
-                    </ol>
-                    <form class="row g-2 mb-3" method="post" action="{{ route('siswa.tambah-pertanyaan', $activity->activity_code) }}">
+                    @if($d->activityQuestions->isNotEmpty())
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Pertanyaan</th>
+                                    <th style="width: 20%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($d->activityQuestions as $question)
+                                    <tr>
+                                        <td>
+                                            {{ $question->question }}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                {{-- Add actual routes or styling here --}}
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-warning"
+                                                        onclick="editQuestion(
+                                                            '{{ $question->id }}', 
+                                                            '{{ $question->question }}', 
+                                                            '{{ route('siswa.update-pertanyaan', [$activity->activity_code, $question->id]) }}'
+                                                        )">
+                                                    Edit
+                                                </button>
+                                                <a href="{{ route('siswa.delete-pertanyaan', [$activity->activity_code, $question->id]) }}" class="btn btn-sm btn-danger">Delete</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <p class="text-muted">Belum ada pertanyaan.</p>
+                    @endif
+                    <form id="questionForm" class="row g-2 mb-3" method="post" action="{{ route('siswa.tambah-pertanyaan', $activity->activity_code) }}">
                         @csrf
-                        <input type="text" name="sub_role_id" id="" value="{{ $d->sub_role_id }}" hidden>
-                        <input type="text" name="student_activity_id" id="" value="{{ $activity->student_activity_id }}" hidden>
+
+                        <input type="hidden" name="question_id" id="form_question_id">
+
+                        <input type="hidden" name="sub_role_id" value="{{ $d->sub_role_id }}">
+                        <input type="hidden" name="student_activity_id" value="{{ $activity->student_activity_id }}">
+
                         <div class="col-md-5">
-                            <input type="text" name="question" class="form-control" placeholder="Tambah Pertanyaan">
+                            <input type="text" name="question" id="form_question_input" class="form-control" placeholder="Tambah Pertanyaan" required>
                         </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-outline-primary w-100">Tambah</button>
+
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" id="btn-submit" class="btn btn-outline-primary w-100">Tambah</button>
+
+                            <button type="button" id="btn-cancel" class="btn btn-secondary d-none" onclick="resetForm()">Batal</button>
                         </div>
                     </form>
                 </div>
@@ -200,7 +235,7 @@
                 <h6 class="fw-bold text-success mt-3">🧾 Manajemen Pendaftar Panitia</h6>
                 <p class="text-muted small">Tinjau data pendaftar panitia baru.</p>
                 
-                <table class="table table-bordered align-middle">
+                <table class="table table-bordered data_table align-middle">
                     <thead class="table-light text-center">
                         <tr>
                             <th>Nama</th> <th>Divisi 1</th> <th>Divisi 2</th> <th>Status</th>
@@ -392,38 +427,6 @@
             </div>
         </div>
 
-
-        {{-- TAB 5: JADWAL --}}
-        <div class="tab-pane fade" id="jadwal">
-            <div class="card shadow-sm p-4">
-                <h6 class="fw-bold text-secondary mt-3">🕓 Tambah Jadwal Rapat</h6>
-                
-                {{-- FORM UPDATE --}}
-                <form action="{{ route('siswa.jadwal-store', $activity->activity_code) }}" method="POST" class="row g-2 mb-3">
-                    @csrf
-                    
-                    {{-- 1. Judul Kegiatan --}}
-                    <div class="col-md-4">
-                        <input type="text" name="title" class="form-control" placeholder="Nama Kegiatan" required>
-                    </div>
-
-                    {{-- 2. Waktu (Gunakan datetime-local agar sesuai controller) --}}
-                    <div class="col-md-3">
-                        <input type="datetime-local" name="start_time" class="form-control" required>
-                    </div>
-
-                    {{-- 3. Lokasi (Wajib ditambahkan karena required di DB) --}}
-                    <div class="col-md-3">
-                        <input type="text" name="location" class="form-control" placeholder="Lokasi / Ruang" required>
-                    </div>
-
-                    {{-- 4. Tombol Submit --}}
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-outline-primary w-100">Tambah</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
         @if($roleCode == "LEAD")
         {{-- TAB 7: HASIL EVALUASI --}}
@@ -698,5 +701,42 @@
                     idInput.value = '';
                 });
             }
+        const addUrl = "{{ route('siswa.tambah-pertanyaan', $activity->activity_code) }}";
+
+    function editQuestion(id, questionText, updateUrl) {
+        // 1. Change Form Action URL to the Update Route
+        $('#questionForm').attr('action', updateUrl);
+
+        // 3. Fill the Input Data
+        $('#form_question_id').val(id);
+        $('#form_question_input').val(questionText);
+
+        // 4. Change Button Visuals (Blue -> Warning)
+        $('#btn-submit').text('Update').removeClass('btn-outline-primary').addClass('btn-warning');
+
+        // 5. Show the Cancel Button
+        $('#btn-cancel').removeClass('d-none');
+        
+        // 6. Focus on the input
+        $('#form_question_input').focus();
+    }
+
+    function resetForm() {
+        // 1. Revert URL to the original Add Route
+        $('#questionForm').attr('action', addUrl);
+
+        // 2. Remove PUT method
+        $('#method-spoofing').empty();
+
+        // 3. Clear Inputs
+        $('#form_question_id').val('');
+        $('#form_question_input').val('');
+
+        // 4. Revert Button Visuals
+        $('#btn-submit').text('Tambah').addClass('btn-outline-primary').removeClass('btn-warning');
+
+        // 5. Hide Cancel Button
+        $('#btn-cancel').addClass('d-none');
+    }
     </script>
 @endsection

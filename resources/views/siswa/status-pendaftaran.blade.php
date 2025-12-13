@@ -7,7 +7,7 @@
 
     <div class="card shadow-sm mb-3">
         <div class="card-body">
-            <table class="table table-bordered align-middle">
+            <table class="table table-bordered data_table align-middle">
                 <thead class="table-primary text-center">
                     <tr>
                         <th>Nama Acara</th>

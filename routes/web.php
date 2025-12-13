@@ -11,7 +11,7 @@ use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return   redirect()->route('login');
+    return redirect()->route('login');
 });
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::get('/dummy', [LoginController::class, 'dataDummy'])->name('dummy');
@@ -48,9 +48,12 @@ Route::prefix('siswa')->middleware(['auth', 'check-role:student'])->group(functi
     Route::get('/panitia/pengurus/{activityCode}', [PanitiaController::class, 'panitiaPengurus'])->name('siswa.panitia-pengurus')->middleware('mode-bph');
     Route::get('/panitia/pengurus-excel/{activityCode}', [ExcelController::class, 'exportExcelAnggota'])->name('siswa.export_excel')->middleware('mode-ketua');
     Route::post('/panitia/pengurus/pertanyaan/{activityCode}', [PanitiaController::class, 'tambahPertanyaan'])->name('siswa.tambah-pertanyaan')->middleware('mode-bph');
+    Route::post('/panitia/pengurus/pertanyaan/{activityCode}/{id}', [PanitiaController::class, 'editPertanyaan'])->name('siswa.update-pertanyaan')->middleware('mode-bph');
+    Route::get('/panitia/pengurus/pertanyaan/{activityCode}/{id}/delete', [PanitiaController::class, 'deletePertanyaan'])->name('siswa.delete-pertanyaan')->middleware('mode-bph');
+
     Route::get('/panitia/jadwal/', [PanitiaController::class, 'panitiaJadwal'])->name('siswa.panitia-jadwal')->middleware('mode-panitia');
     Route::put('/panitia/{activityCode}/interview', [PanitiaController::class, 'updateInterviewDate'])
-    ->name('student_activities.update_interview')->middleware('mode-ketua');
+        ->name('student_activities.update_interview')->middleware('mode-ketua');
 
     Route::post('/panitia/saveEvaluasi/{activityCode}', [PanitiaController::class, 'saveEvaluasi'])->name('siswa.panitia-save-evaluasi')->middleware('mode-panitia');
     Route::post('/panitia/simpan-grading/{activityCode}', [PanitiaController::class, 'saveGrading'])
@@ -111,7 +114,7 @@ Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')
 
     // Laporan Mahasiswa (BARU)
     Route::get('/laporan-mahasiswa', [AdminController::class, 'laporanMahasiswa'])->name('laporan-mahasiswa');
-    
+
     // History Global
     Route::get('/history-pendaftaran', [AdminController::class, 'historyPendaftaran'])->name('history-pendaftaran');
 });
@@ -125,7 +128,7 @@ Route::middleware(['auth', 'check-role:lecturer'])->prefix('dosen')->name('dosen
     // Laporan Acara (Dibedakan Finish/Ongoing di View)
     Route::get('/laporan-acara', [DosenController::class, 'laporanAcara'])->name('laporan-acara');
     Route::get('/laporan-acara/{id}', [DosenController::class, 'laporanAcaraDetail'])->name('laporan-acara-detail');
-    
+
     // Laporan Mahasiswa (Gabungan dengan KPI)
     Route::get('/laporan-mahasiswa', [DosenController::class, 'laporanMahasiswa'])->name('laporan-mahasiswa');
     Route::get('/laporan-mahasiswa/{id}', [DosenController::class, 'laporanMahasiswaDetail'])->name('laporan-mahasiswa-detail');
