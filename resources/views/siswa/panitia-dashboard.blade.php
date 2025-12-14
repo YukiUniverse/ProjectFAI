@@ -72,7 +72,14 @@
                 <div class="d-flex gap-2 mt-3">
                     <a href="{{ route('siswa.panitia-detail', $a->activity_code) }}"
                         class="btn btn-sm btn-outline-primary">Detail Acara</a>
-                    @if($a->status == "interview")
+                    @php
+                        // Ambil role_code milik user yang login di acara ini
+                        // $a->members->first() pasti mengambil data user sendiri karena filter di Controller
+                        $myRoleCode = $a->members->first()?->role->role_code ?? null;
+                    @endphp
+
+                    {{-- Tampilkan tombol List Pendaftar jika status interview DAN Role sesuai --}}
+                    @if($a->status == "interview" && in_array($myRoleCode, ['LEAD', 'NOTE', 'COOR']))
                         <a href="{{ route('siswa.panitia-pendaftar', $a->activity_code) }}"
                             class="btn btn-sm btn-outline-success">List Pendaftar</a>
                     @endif

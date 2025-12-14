@@ -48,11 +48,22 @@ class PanitiaController extends Controller
             return $registration;
         });
         $jumPendaftaran = $registrationData->where('status', 'pending')->count();
-        $interviewList = StudentActivity::with('members')->whereHas('members', function ($query) use ($studentId) {
-            $query->where('activity_structures.student_id', $studentId);
-        })
-            ->
-            where('status', 'interview')->get();
+        // $interviewList = StudentActivity::with('members')->whereHas('members', function ($query) use ($studentId) {
+        //     $query->where('activity_structures.student_id', $studentId);
+        // })
+        //     ->
+        //     where('status', 'interview')->get();
+
+        $interviewList = StudentActivity::with('members')
+            ->whereHas('members', function ($query) use ($studentId) {
+                $query->where('activity_structures.student_id', $studentId)
+                    ->whereHas('role', function ($roleQuery) {
+                        // Filter Role Code: LEAD, COOR, atau NOTE
+                        $roleQuery->whereIn('role_code', ['LEAD', 'COOR', 'NOTE']);
+                    });
+            })
+            ->where('status', 'interview')
+            ->get();
         return view('siswa.dashboard', compact('jumAcara', 'jumPendaftaran', 'interviewList'));
     }
     public function profile()
@@ -208,11 +219,19 @@ class PanitiaController extends Controller
     public function panitiaDashboard()
     {
         $studentId = Auth::user()->student->student_id;
-        $acara = StudentActivity::with('members')->whereHas('members', function ($query) use ($studentId) {
-            $query->where('activity_structures.student_id', $studentId);
-        })
-            ->
-            where('status', '!=', 'finished')->get();
+
+        $acara = StudentActivity::whereHas('members', function ($query) use ($studentId) {
+                // Filter acara di mana siswa ini terdaftar sebagai member
+                $query->where('activity_structures.student_id', $studentId);
+            })
+            ->with(['members' => function ($query) use ($studentId) {
+                // Eager Load 'members' TAPI difilter hanya punya siswa ini saja
+                // Tujuannya agar kita bisa akses: $activity->members->first()->role
+                $query->where('student_id', $studentId)->with('role');
+            }])
+            ->where('status', '!=', 'finished')
+            ->get();
+
         return view('siswa.panitia-dashboard', compact('acara'));
     }
     public function panitiaDashboardInterview()
