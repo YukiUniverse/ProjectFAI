@@ -237,11 +237,22 @@ class PanitiaController extends Controller
     public function panitiaDashboardInterview()
     {
         $studentId = Auth::user()->student->student_id;
-        $acara = StudentActivity::with('members')->whereHas('members', function ($query) use ($studentId) {
-            $query->where('activity_structures.student_id', $studentId);
-        })
-            ->
-            where('status', 'interview')->get();
+        // $acara = StudentActivity::with('members')->whereHas('members', function ($query) use ($studentId) {
+        //     $query->where('activity_structures.student_id', $studentId);
+        // })
+        //     ->
+        //     where('status', 'interview')->get();
+
+        $acara = StudentActivity::with('members')
+            ->whereHas('members', function ($query) use ($studentId) {
+                $query->where('activity_structures.student_id', $studentId)
+                    ->whereHas('role', function ($roleQuery) {
+                        // Filter Role Code: LEAD, COOR, atau NOTE
+                        $roleQuery->whereIn('role_code', ['LEAD', 'COOR', 'NOTE']);
+                    });
+            })
+            ->where('status', 'interview')
+            ->get();
         return view('siswa.panitia-dashboard-interview', compact('acara'));
     }
 
