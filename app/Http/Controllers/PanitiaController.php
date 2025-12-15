@@ -36,7 +36,7 @@ class PanitiaController extends Controller
                 // Cek ke tabel activity_structure
                 // Asumsi: Kamu punya Model 'ActivityStructure' dan foreign key yang relevan
                 $isListed = ActivityStructure::where('student_id', $registration->student_id)
-                    ->where('recruitment_registration_id', $registration->id) // Atau activity_id yang sesuai
+                    ->where('student_activity_id', $registration->student_activity_id) // Atau activity_id yang sesuai
                     ->exists();
 
                 // JIKA status accepted TAPI tidak ada di structure, ubah jadi pending (hanya untuk tampilan ini)
@@ -153,12 +153,13 @@ class PanitiaController extends Controller
                 // Cek ke tabel activity_structure
                 // Asumsi: Kamu punya Model 'ActivityStructure' dan foreign key yang relevan
                 $isListed = ActivityStructure::where('student_id', $registration->student_id)
-                    ->where('recruitment_registration_id', $registration->id) // Atau activity_id yang sesuai
+                    ->where('student_activity_id', $registration->student_activity_id) // Atau activity_id yang sesuai
                     ->exists();
 
                 // JIKA status accepted TAPI tidak ada di structure, ubah jadi pending (hanya untuk tampilan ini)
                 if (!$isListed) {
                     $registration->status = 'pending';
+                    $registration->decision_reason = '';
                 }
             }
 
@@ -221,14 +222,16 @@ class PanitiaController extends Controller
         $studentId = Auth::user()->student->student_id;
 
         $acara = StudentActivity::whereHas('members', function ($query) use ($studentId) {
-                // Filter acara di mana siswa ini terdaftar sebagai member
-                $query->where('activity_structures.student_id', $studentId);
-            })
-            ->with(['members' => function ($query) use ($studentId) {
-                // Eager Load 'members' TAPI difilter hanya punya siswa ini saja
-                // Tujuannya agar kita bisa akses: $activity->members->first()->role
-                $query->where('student_id', $studentId)->with('role');
-            }])
+            // Filter acara di mana siswa ini terdaftar sebagai member
+            $query->where('activity_structures.student_id', $studentId);
+        })
+            ->with([
+                'members' => function ($query) use ($studentId) {
+                    // Eager Load 'members' TAPI difilter hanya punya siswa ini saja
+                    // Tujuannya agar kita bisa akses: $activity->members->first()->role
+                    $query->where('student_id', $studentId)->with('role');
+                }
+            ])
             ->where('status', '!=', 'finished')
             ->get();
 

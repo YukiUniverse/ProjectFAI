@@ -15,7 +15,7 @@
 
                         <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
                             <div class="profile-pic-container me-4">
-                                <img src="https://avatar.iran.liara.run/public/1" width="100" height="100" alt="Foto Profil"
+                                <img src="https://i.pravatar.cc/150?img=51" width="100" height="100" alt="Foto Profil"
                                     class="profile-pic">
                             </div>
 

@@ -164,7 +164,8 @@
 
             <!-- Brand -->
             <a class="navbar-brand fw-bold me-auto" href="#" style="color:#198754;">
-                🎓 Oprec ISTTS
+                <img src="{{ asset('storage/images/istts-1.png') }}" width="50" height="50" alt=""> Oprec
+                ISTTS
             </a>
 
             <div class="d-flex align-items-center">
@@ -183,7 +184,7 @@
                 <!-- B. Profile Picture -->
                 <div class="profile-pic-container">
                     <a href="{{ route('siswa.profile') }}">
-                        <img src="https://avatar.iran.liara.run/public/1" width="40" height="40" alt="Profile"
+                        <img src="https://i.pravatar.cc/150?img=51" width="40" height="40" alt="Profile"
                             class="profile-pic">
                     </a>
                 </div>

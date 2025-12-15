@@ -140,7 +140,9 @@
 
     <nav class="navbar mobile-nav d-md-none fixed-top">
         <div class="d-flex align-items-center w-100 justify-content-between">
-            <span class="mobile-brand"><i class="bi bi-mortarboard-fill me-2"></i>Portal Dosen</span>
+            <span class="mobile-brand"><img src="{{ asset('storage/images/istts-1.png') }}" width="50" height="50"
+                    alt=""> Oprec
+                ISTTS</span>
             <button class="btn btn-light text-success border-0 shadow-sm" type="button" data-bs-toggle="offcanvas"
                 data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
                 <i class="bi bi-list fs-4"></i>
@@ -163,7 +165,8 @@
 
                 <div class="px-3">
                     <div class="sidebar-brand d-none d-md-flex align-items-center">
-                        <i class="bi bi-mortarboard-fill me-2"></i> Oprec ISTTS
+                        <img src="{{ asset('storage/images/istts-1.png') }}" width="50" height="50" alt=""> Oprec
+                        ISTTS
                     </div>
 
                     <div class="mt-2">

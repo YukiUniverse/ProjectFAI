@@ -9,6 +9,7 @@ use App\Models\RecruitmentRegistration;
 use App\Models\StudentActivity;
 use App\Models\StudentRating;
 use App\Models\SubRole;
+use Auth;
 use Illuminate\Http\Request;
 
 class OpenRecruitmentController extends Controller
@@ -16,9 +17,8 @@ class OpenRecruitmentController extends Controller
     //
     public function panitiaPendaftar($activityCode)
     {
-
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
-        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
+        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->where('student_activity_id', $activity->student_activity_id)->get();
         return view('siswa.oprec.list_pendaftar', compact('activity', 'listPendaftar'));
     }
     public function detailPendaftar($activityCode, $registrationID)
@@ -26,6 +26,7 @@ class OpenRecruitmentController extends Controller
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
         $currentStudent = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->where('id', $registrationID)->first();
         $studentId = $currentStudent->student_id;
+
         $histories = ActivityStructure::with(['activity', 'role', 'subRole'])
             ->where('student_id', $studentId) // Adjust ID based on your relation
             ->whereHas('activity', function ($q) {
@@ -44,6 +45,7 @@ class OpenRecruitmentController extends Controller
 
             $h->kpi_score = $avgStars ? number_format($avgStars, 1) : 0;
         }
+
         // $allDivisions = SubRole::all();
         $previousDecisions = $currentStudent->decisions()->with('judge')->get();
 
@@ -53,6 +55,13 @@ class OpenRecruitmentController extends Controller
             ->select('sub_roles.*') // Hanya ambil kolom data divisi
             ->get();
 
+        $currUserInActivity = ActivityStructure::with(['role', 'subRole']) // Load both relationships
+            ->whereHas('activity', function ($query) use ($activityCode) {
+                $query->where('activity_code', $activityCode);
+            })
+            ->where('student_id', Auth::user()->student->student_id)
+            ->firstOrFail();
+
         return view(
             'siswa.oprec.detail-pendaftar',
             compact(
@@ -60,7 +69,8 @@ class OpenRecruitmentController extends Controller
                 'currentStudent',
                 'histories',
                 'allDivisions',
-                'previousDecisions'
+                'previousDecisions',
+                'currUserInActivity',
             )
         );
     }

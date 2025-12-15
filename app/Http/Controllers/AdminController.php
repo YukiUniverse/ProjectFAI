@@ -42,9 +42,9 @@ class AdminController extends Controller
         }
 
         return view('admin.dashboard', compact(
-            'pendingProposals', 
-            'activeActivities', 
-            'totalStudents', 
+            'pendingProposals',
+            'activeActivities',
+            'totalStudents',
             'recentRegistrations',
             'kpiSummary' // <-- Kirim variabel baru ini
         ));
@@ -54,8 +54,8 @@ class AdminController extends Controller
     {
         // Ambil semua proposal, urutkan dari yang terbaru
         $proposals = Proposal::with(['student', 'studentOrganization'])
-                        ->latest()
-                        ->get();
+            ->latest()
+            ->get();
         return view('admin.proposal-list', compact('proposals'));
     }
 
@@ -69,21 +69,21 @@ class AdminController extends Controller
 
             // Cek duplikasi agar tidak double insert
             $existingActivity = StudentActivity::where('proposal_id', $proposal->id)->first();
-            
+
             if (!$existingActivity) {
-                
+
                 // --- LOGIC 1: GENERATE SEQUENTIAL CODE (ACTXXX) ---
-                
+
                 // Ambil activity terakhir berdasarkan ID terbesar
                 $lastActivity = StudentActivity::orderBy('student_activity_id', 'desc')->first();
-                
+
                 if ($lastActivity) {
                     // Ambil string kode terakhir (Misal: ACT003)
                     $lastCode = $lastActivity->activity_code;
-                    
+
                     // Ambil angka dibelakang "ACT" (index ke-3 sampai akhir) -> "003" jadi int 3
                     $lastNumber = (int) substr($lastCode, 3);
-                    
+
                     // Tambah 1
                     $nextNumber = $lastNumber + 1;
                 } else {
@@ -98,15 +98,15 @@ class AdminController extends Controller
                 // --- LOGIC 2: BUAT ACTIVITY ---
 
                 $activity = StudentActivity::create([
-                    'proposal_id'             => $proposal->id,
-                    'activity_code'           => $newActivityCode, // Pakai kode urut baru
-                    'activity_catalog_code'   => 'CAT-DEF',
+                    'proposal_id' => $proposal->id,
+                    'activity_code' => $newActivityCode, // Pakai kode urut baru
+                    'activity_catalog_code' => 'CAT-DEF',
                     'student_organization_id' => $proposal->student_organization_id,
-                    'activity_name'           => $proposal->title,
-                    'activity_description'    => $proposal->description,
-                    'start_datetime'          => $proposal->start_datetime,
-                    'end_datetime'            => $proposal->end_datetime,
-                    'status'                  => 'preparation',
+                    'activity_name' => $proposal->title,
+                    'activity_description' => $proposal->description,
+                    'start_datetime' => $proposal->start_datetime,
+                    'end_datetime' => $proposal->end_datetime,
+                    'status' => 'preparation',
                 ]);
 
 
@@ -119,17 +119,17 @@ class AdminController extends Controller
                     // [BARU] Tambahkan BPH ke ActivitySubRole (Daftar sub role yang aktif di activity ini)
                     ActivitySubRole::create([
                         'student_activity_id' => $activity->student_activity_id,
-                        'sub_role_id'         => $bphRole->sub_role_id
+                        'sub_role_id' => $bphRole->sub_role_id
                     ]);
                 }
 
                 ActivityStructure::create([
                     'student_activity_id' => $activity->student_activity_id,
-                    'student_id'          => $proposal->student_id, // ID Ketua dari Proposal
-                    'student_role_id'     => 1, // HARDCODE: 1 = Ketua / Role Utama
-                    'sub_role_id'         => $bphRole ? $bphRole->sub_role_id : null, // ID Sub Role BPH
-                    'structure_name'      => 'Ketua Pelaksana',
-                    'structure_points'    => 0, // Poin awal
+                    'student_id' => $proposal->student_id, // ID Ketua dari Proposal
+                    'student_role_id' => 1, // HARDCODE: 1 = Ketua / Role Utama
+                    'sub_role_id' => $bphRole ? $bphRole->sub_role_id : null, // ID Sub Role BPH
+                    'structure_name' => 'Ketua Pelaksana',
+                    'structure_points' => 0, // Poin awal
                 ]);
             }
         });
@@ -147,9 +147,9 @@ class AdminController extends Controller
         ]);
 
         $proposal = Proposal::findOrFail($id);
-        
+
         $proposal->update([
-            'status'        => 'rejected',
+            'status' => 'rejected',
             'reject_reason' => $request->reject_reason
         ]);
 
@@ -183,7 +183,7 @@ class AdminController extends Controller
         return back()->with('success', 'Proposal Disetujui & Kegiatan Dibuat.');
     }
 
-// --- REVISI: DAFTAR ACARA + LAPORAN ACARA (GABUNGAN) ---
+    // --- REVISI: DAFTAR ACARA + LAPORAN ACARA (GABUNGAN) ---
     public function acaraList(Request $request)
     {
         $query = StudentActivity::with('proposal.student')
@@ -202,8 +202,8 @@ class AdminController extends Controller
         $activities = $query->get();
 
         // Hitung KPI jika acara sudah selesai (Untuk keperluan laporan)
-        foreach($activities as $act) {
-            if($act->status == 'finished') {
+        foreach ($activities as $act) {
+            if ($act->status == 'finished') {
                 $avg = StudentRating::where('student_activity_id', $act->student_activity_id)->avg('stars');
                 $act->avg_kpi = $avg ? number_format($avg, 1) : '-';
             } else {
@@ -217,7 +217,7 @@ class AdminController extends Controller
     public function panitiaDetail($activityCode)
     {
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
-        
+
         // 1. Panitia Resmi (Tabel activity_structures)
         $officialMembers = ActivityStructure::with(['student', 'role', 'subRole'])
             ->where('student_activity_id', $activity->student_activity_id)
@@ -238,19 +238,58 @@ class AdminController extends Controller
         // Filter: Search Nama Mahasiswa
         if ($request->filled('search')) {
             $query->where('full_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('student_number', 'like', '%' . $request->search . '%');
+                ->orWhere('student_number', 'like', '%' . $request->search . '%');
         }
 
         $students = $query->paginate(50); // Pakai paginate biar rapi
 
         // Hitung Rata-rata KPI Global
-        foreach($students as $s) {
+        foreach ($students as $s) {
             $avg = StudentRating::where('rated_student_id', $s->student_id)->avg('stars');
             $s->global_kpi = $avg ? number_format($avg, 1) : '-';
         }
 
         return view('admin.laporan-mahasiswa', compact('students'));
     }
+    public function laporanMahasiswaDetail($id)
+    {
+        $student = Student::with('department')->findOrFail($id);
+
+        // 1. Ambil History Pendaftaran (Diterima / Ditolak / Pending)
+        // Gunakan RecruitmentRegistration untuk melihat semua history lamaran
+        $historyApplications = RecruitmentRegistration::with(['activityDetail', 'firstChoice'])
+            ->where('student_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+
+
+        $histories = ActivityStructure::with(['activity', 'role', 'subRole'])
+            ->where('student_id', $id)
+            ->whereHas('activity', function ($q) {
+                // vvv TAMBAHKAN FILTER INI vvv
+                $q->where('status', 'finished')
+                    ->orderBy('start_datetime', 'desc');
+            })
+            ->get();
+
+        // 3. Hitung Nilai KPI (Rata-rata Bintang) per Acara
+        foreach ($histories as $h) {
+            $avgStars = StudentRating::where('student_activity_id', $h->student_activity_id)
+                ->where('rated_student_id', $id)
+                ->avg('stars');
+
+            $h->kpi_score = $avgStars ? number_format($avgStars, 1) : 0;
+        }
+
+        // 4. Hitung Statistik Keseluruhan
+        $scoredActivities = $histories->where('kpi_score', '>', 0);
+        $overallKpi = $scoredActivities->count() > 0 ? number_format($scoredActivities->avg('kpi_score'), 1) : '0.0';
+        $totalEvent = $histories->count();
+
+        return view('admin.laporan-mahasiswa-detail', compact('student', 'historyApplications', 'histories', 'overallKpi', 'totalEvent'));
+    }
+
     // --- HISTORY GLOBAL ---
     public function historyPendaftaran()
     {
@@ -264,17 +303,17 @@ class AdminController extends Controller
         // 1. Ambil acara yang sudah selesai (finished)
         // Kita juga bisa ambil yang 'active' jika ingin melihat monitoring berjalan
         $activities = StudentActivity::where('status', 'finished')
-            ->orWhere('status', 'active') 
+            ->orWhere('status', 'active')
             ->orderBy('start_datetime', 'desc')
             ->get();
 
-        foreach($activities as $act) {
+        foreach ($activities as $act) {
             // 2. Hitung rata-rata bintang di acara tersebut
             $avg = StudentRating::where('student_activity_id', $act->student_activity_id)->avg('stars');
-            
+
             // Format angka (misal: 3.5)
             $act->avg_rating = $avg ? number_format($avg, 1) : 0;
-            
+
             // Hitung total panitia
             $act->total_staff = ActivityStructure::where('student_activity_id', $act->student_activity_id)->count();
         }
@@ -286,17 +325,17 @@ class AdminController extends Controller
     {
         // Fungsi untuk melihat detail nilai per orang di satu acara
         $activity = StudentActivity::where('activity_code', $activityCode)->firstOrFail();
-        
+
         $panitiaScores = ActivityStructure::with(['student', 'subRole', 'role'])
             ->where('student_activity_id', $activity->student_activity_id)
             ->get();
 
         // Inject score rata-rata per orang
-        foreach($panitiaScores as $p) {
+        foreach ($panitiaScores as $p) {
             $avg = StudentRating::where('student_activity_id', $activity->student_activity_id)
                 ->where('rated_student_id', $p->student_id)
                 ->avg('stars');
-                
+
             $p->kpi_score = $avg ? number_format($avg, 1) : '-';
         }
 

@@ -114,7 +114,7 @@ Route::middleware(['auth', 'check-role:admin'])->prefix('admin')->name('admin.')
 
     // Laporan Mahasiswa (BARU)
     Route::get('/laporan-mahasiswa', [AdminController::class, 'laporanMahasiswa'])->name('laporan-mahasiswa');
-
+    Route::get('/laporan-mahasiswa/{id}', [AdminController::class, 'laporanMahasiswaDetail'])->name('laporan-mahasiswa-detail');
     // History Global
     Route::get('/history-pendaftaran', [AdminController::class, 'historyPendaftaran'])->name('history-pendaftaran');
 });

@@ -1,8 +1,8 @@
-@extends('layouts.dosen')
+@extends('layouts.admin')
 @section('title', 'Detail Riwayat Mahasiswa')
 @section('content')
 
-    <a href="{{ route('dosen.laporan-mahasiswa') }}" class="btn btn-sm btn-outline-secondary mb-3">⬅ Kembali</a>
+    <a href="{{ route('admin.laporan-mahasiswa') }}" class="btn btn-sm btn-outline-secondary mb-3">⬅ Kembali</a>
     <div class="card mb-4 border-0 shadow-sm bg-success text-white">
         <div class="card-body d-flex align-items-center gap-3">
             <div style="font-size: 40px;">👨‍🎓</div>

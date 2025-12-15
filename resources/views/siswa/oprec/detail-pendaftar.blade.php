@@ -167,106 +167,109 @@
                         </div>
 
                         {{-- SECTION 2: LEADER'S FINAL DECISION (New) --}}
-                        <div class="card shadow border-0 rounded-4 overflow-hidden mb-5">
-                            <div class="card-header bg-dark text-white p-4">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-gavel fs-3 me-3"></i>
-                                    <div>
-                                        <h4 class="mb-0 fw-bold">Keputusan Final (Leader)</h4>
-                                        <small class="text-white-50">Review rekomendasi anggota dan putuskan.</small>
+                        @if($currUserInActivity->role->role_code == "LEAD")
+                            <div class="card shadow border-0 rounded-4 overflow-hidden mb-5">
+                                <div class="card-header bg-dark text-white p-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-gavel fs-3 me-3"></i>
+                                        <div>
+                                            <h4 class="mb-0 fw-bold">Keputusan Final (Leader)</h4>
+                                            <small class="text-white-50">Review rekomendasi anggota dan putuskan.</small>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="card-body p-4">
+                                <div class="card-body p-4">
 
-                                {{-- A. List of Recommendations --}}
-                                <h6 class="fw-bold text-uppercase text-muted small mb-3">Daftar Masukan Interviewer</h6>
-                                <div class="list-group mb-4">
-                                    @forelse($previousDecisions as $decision)
-                                        <div
-                                            class="list-group-item d-flex justify-content-between align-items-start p-3 bg-light border-0 mb-2 rounded">
-                                            <div class="form-check pt-1">
-                                                {{-- The Checkbox --}}
-                                                <input class="form-check-input reason-checkbox" type="checkbox"
-                                                    value="{{ $decision->reason }}" id="reasonCheck{{ $loop->index }}">
-                                                <label class="form-check-label ms-2" for="reasonCheck{{ $loop->index }}">
-                                                    <strong>{{ $decision->judge->full_name ?? 'Interviewer' }}</strong>
-                                                    <span
-                                                        class="badge {{ $decision->verdict == 'accept' ? 'bg-success' : 'bg-danger' }} ms-2">
-                                                        {{ strtoupper($decision->verdict) }}
-                                                    </span>
-                                                    <p class="mb-0 text-muted mt-1 fst-italic">"{{ $decision->reason }}"</p>
-                                                </label>
+                                    {{-- A. List of Recommendations --}}
+                                    <h6 class="fw-bold text-uppercase text-muted small mb-3">Daftar Masukan Interviewer</h6>
+                                    <div class="list-group mb-4">
+                                        @forelse($previousDecisions as $decision)
+                                            <div
+                                                class="list-group-item d-flex justify-content-between align-items-start p-3 bg-light border-0 mb-2 rounded">
+                                                <div class="form-check pt-1">
+                                                    {{-- The Checkbox --}}
+                                                    <input class="form-check-input reason-checkbox" type="checkbox"
+                                                        value="{{ $decision->reason }}" id="reasonCheck{{ $loop->index }}">
+                                                    <label class="form-check-label ms-2" for="reasonCheck{{ $loop->index }}">
+                                                        <strong>{{ $decision->judge->full_name ?? 'Interviewer' }}</strong>
+                                                        <span
+                                                            class="badge {{ $decision->verdict == 'accept' ? 'bg-success' : 'bg-danger' }} ms-2">
+                                                            {{ strtoupper($decision->verdict) }}
+                                                        </span>
+                                                        <p class="mb-0 text-muted mt-1 fst-italic">"{{ $decision->reason }}"</p>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="alert alert-info small">Belum ada rekomendasi dari interviewer lain.</div>
+                                        @endforelse
+                                    </div>
+
+                                    <hr class="my-4">
+
+                                    {{-- B. Final Decision Form --}}
+                                    <form
+                                        action="{{ route('siswa.store-decision-akhir', [$activity->activity_code, $currentStudent->id]) }}"
+                                        method="POST">
+                                        @csrf
+
+                                        <div class="row g-4">
+                                            {{-- 1. Final Status --}}
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Status Final</label>
+                                                <select name="final_status" id="finalStatusSelect"
+                                                    class="form-select form-select-lg" required>
+                                                    <option value="" disabled selected>-- Putuskan --</option>
+                                                    <option value="accepted" class="text-success">✅ DITERIMA</option>
+                                                    <option value="rejected" class="text-danger">🚫 DITOLAK</option>
+                                                </select>
+                                            </div>
+
+                                            {{-- 2. Final Division (All Divisions) --}}
+                                            <div class="col-md-8 d-none" id="finalDivisionContainer">
+                                                <label class="form-label fw-bold text-success">Tempatkan di Divisi
+                                                    (Final)</label>
+                                                <select name="final_division_id" class="form-select form-select-lg">
+                                                    <option value="" disabled selected>Pilih Divisi...</option>
+                                                    @foreach($allDivisions as $div)
+                                                        <option value="{{ $div->sub_role_id }}" {{-- Highlight if it was student's
+                                                            choice --}}
+                                                            @if($div->sub_role_id == $currentStudent->choice_1_sub_role_id)
+                                                            class="fw-bold bg-light" @endif>
+                                                            {{ $div->sub_role_name }}
+                                                            @if($div->sub_role_id == $currentStudent->choice_1_sub_role_id) (Pilihan
+                                                                1)
+                                                            @endif
+                                                            @if($div->sub_role_id == $currentStudent->choice_2_sub_role_id) (Pilihan
+                                                                2)
+                                                            @endif
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            {{-- 3. Final Reason (Auto-filled) --}}
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold">Alasan Final (Summary)</label>
+                                                <textarea name="final_reason" id="finalReasonArea" class="form-control" rows="4"
+                                                    placeholder="Klik checkbox di atas atau ketik manual..."></textarea>
+                                                <div class="form-text">Centang masukan di atas untuk menggabungkan alasan secara
+                                                    otomatis.</div>
+                                            </div>
+
+                                            {{-- 4. Submit --}}
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-dark w-100 py-3 fw-bold">
+                                                    <i class="bi bi-check-circle-fill me-2"></i> SIMPAN KEPUTUSAN FINAL
+                                                </button>
                                             </div>
                                         </div>
-                                    @empty
-                                        <div class="alert alert-info small">Belum ada rekomendasi dari interviewer lain.</div>
-                                    @endforelse
+                                    </form>
                                 </div>
 
-                                <hr class="my-4">
-
-                                {{-- B. Final Decision Form --}}
-                                <form
-                                    action="{{ route('siswa.store-decision-akhir', [$activity->activity_code, $currentStudent->id]) }}"
-                                    method="POST">
-                                    @csrf
-
-                                    <div class="row g-4">
-                                        {{-- 1. Final Status --}}
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold">Status Final</label>
-                                            <select name="final_status" id="finalStatusSelect"
-                                                class="form-select form-select-lg" required>
-                                                <option value="" disabled selected>-- Putuskan --</option>
-                                                <option value="accepted" class="text-success">✅ DITERIMA</option>
-                                                <option value="rejected" class="text-danger">🚫 DITOLAK</option>
-                                            </select>
-                                        </div>
-
-                                        {{-- 2. Final Division (All Divisions) --}}
-                                        <div class="col-md-8 d-none" id="finalDivisionContainer">
-                                            <label class="form-label fw-bold text-success">Tempatkan di Divisi
-                                                (Final)</label>
-                                            <select name="final_division_id" class="form-select form-select-lg">
-                                                <option value="" disabled selected>Pilih Divisi...</option>
-                                                @foreach($allDivisions as $div)
-                                                    <option value="{{ $div->sub_role_id }}" {{-- Highlight if it was student's
-                                                        choice --}}
-                                                        @if($div->sub_role_id == $currentStudent->choice_1_sub_role_id)
-                                                        class="fw-bold bg-light" @endif>
-                                                        {{ $div->sub_role_name }}
-                                                        @if($div->sub_role_id == $currentStudent->choice_1_sub_role_id) (Pilihan
-                                                            1)
-                                                        @endif
-                                                        @if($div->sub_role_id == $currentStudent->choice_2_sub_role_id) (Pilihan
-                                                            2)
-                                                        @endif
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        {{-- 3. Final Reason (Auto-filled) --}}
-                                        <div class="col-12">
-                                            <label class="form-label fw-bold">Alasan Final (Summary)</label>
-                                            <textarea name="final_reason" id="finalReasonArea" class="form-control" rows="4"
-                                                placeholder="Klik checkbox di atas atau ketik manual..."></textarea>
-                                            <div class="form-text">Centang masukan di atas untuk menggabungkan alasan secara
-                                                otomatis.</div>
-                                        </div>
-
-                                        {{-- 4. Submit --}}
-                                        <div class="col-12">
-                                            <button type="submit" class="btn btn-dark w-100 py-3 fw-bold">
-                                                <i class="bi bi-check-circle-fill me-2"></i> SIMPAN KEPUTUSAN FINAL
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
                             </div>
-                        </div>
+                        @endif
 
                     </div>
                 </div>
