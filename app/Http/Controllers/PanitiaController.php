@@ -388,7 +388,7 @@ class PanitiaController extends Controller
             ])
             ->select('sub_roles.*') // PENTING: Agar hasil query tetap berupa model SubRole (menghindari tumpang tindih ID)
             ->get();
-        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->get();
+        $listPendaftar = RecruitmentRegistration::with(['student', 'firstChoice', 'secondChoice', 'decisions'])->where('student_activity_id', $activity->student_activity_id)->get();
 
         // ==========================================
         // UPDATE LOGIKA DIVISI (SUB ROLE)

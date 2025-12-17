@@ -6,466 +6,526 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
-use App\Models\StudentActivity;
 use App\Models\SubRole;
 
 class DatabaseSeeder extends Seeder
 {
     public function run()
     {
+        $now = Carbon::now();
+        $password = Hash::make('password');
+
+        $this->command->info('Memulai Seeding Database Manual (Tanpa Random)...');
+
         // ==========================================
         // PHASE 1: MASTER DATA
         // ==========================================
 
-        // 1. Organizations & Departments
+        // 1. Organizations
         DB::table('student_organizations')->insert([
             ['student_organization_id' => 1, 'organization_name' => 'Himpunan Mahasiswa Informatika'],
-            ['student_organization_id' => 2, 'organization_name' => 'Badan Eksekutif Mahasiswa'],
+            ['student_organization_id' => 2, 'organization_name' => 'Badan Eksekutif Mahasiswa (BEM)'],
+            ['student_organization_id' => 3, 'organization_name' => 'Unit Kegiatan Olahraga'],
+            ['student_organization_id' => 4, 'organization_name' => 'UKM Seni & Musik'],
         ]);
 
+        // 2. Departments
         DB::table('academic_departments')->insert([
             ['department_id' => 1, 'department_name' => 'Informatika'],
             ['department_id' => 2, 'department_name' => 'DKV'],
             ['department_id' => 3, 'department_name' => 'Sistem Informasi'],
+            ['department_id' => 4, 'department_name' => 'Teknik Sipil'],
         ]);
 
-        // 2. Roles & Sub Roles
+        // 3. Roles
         DB::table('student_roles')->insert([
-            ['student_role_id' => 1, 'role_code' => 'LEAD', 'role_name' => 'Team Lead'],   // Ketua
-            ['student_role_id' => 2, 'role_code' => 'NOTE', 'role_name' => 'Secretary'],   // Sekretaris
-            ['student_role_id' => 3, 'role_code' => 'MEBR', 'role_name' => 'Member'],      // Anggota
-            ['student_role_id' => 4, 'role_code' => 'COOR', 'role_name' => 'Coordinator'], // Koordinator
+            ['student_role_id' => 1, 'role_code' => 'LEAD', 'role_name' => 'Ketua'],      
+            ['student_role_id' => 2, 'role_code' => 'NOTE', 'role_name' => 'Sekretaris'], 
+            ['student_role_id' => 3, 'role_code' => 'MEBR', 'role_name' => 'Anggota'],      
+            ['student_role_id' => 4, 'role_code' => 'COOR', 'role_name' => 'Koordinator'], 
         ]);
 
-
-
-        // ==========================================
-        // PHASE 2: USERS (10 Students, 5 Lecturers)
-        // ==========================================
-
-        $password = Hash::make('password');
-
-        // --- STUDENTS (10) ---
-        $students = [
-            ['id' => 1, 'nrp' => '241000001', 'name' => 'Iris Kalani', 'dept' => 1], // The Leader
-            ['id' => 2, 'nrp' => '241000002', 'name' => 'Mateo Lin', 'dept' => 2],
-            ['id' => 3, 'nrp' => '241000003', 'name' => 'Sora Veld', 'dept' => 3],
-            ['id' => 4, 'nrp' => '241000004', 'name' => 'Riku Tendo', 'dept' => 1],
-            ['id' => 5, 'nrp' => '241000005', 'name' => 'Nina Zen', 'dept' => 2],
-            ['id' => 6, 'nrp' => '241000006', 'name' => 'Arlo Puce', 'dept' => 3],
-            ['id' => 7, 'nrp' => '241000007', 'name' => 'Lila Kross', 'dept' => 1],
-            ['id' => 8, 'nrp' => '241000008', 'name' => 'Finn Balor', 'dept' => 2],
-            ['id' => 9, 'nrp' => '241000009', 'name' => 'Gwen Stacy', 'dept' => 3],
-            ['id' => 10, 'nrp' => '241000010', 'name' => 'Miles Mo', 'dept' => 1],
+        // 4. Master Sub Roles (Divisi)
+        $masterSubRoles = [
+            ['code' => 'SR01', 'name' => 'BPH', 'en' => 'Main Board'],
+            ['code' => 'SR02', 'name' => 'Divisi Acara', 'en' => 'Event'],
+            ['code' => 'SR03', 'name' => 'Divisi Media', 'en' => 'Media'],
+            ['code' => 'SR04', 'name' => 'Divisi Logistik', 'en' => 'Logistics'],
+            ['code' => 'SR05', 'name' => 'Divisi Humas', 'en' => 'Public Relations'],
+            ['code' => 'SR06', 'name' => 'Divisi Konsumsi', 'en' => 'Consumption'],
+            ['code' => 'SR07', 'name' => 'Divisi Keamanan', 'en' => 'Security'],
+            ['code' => 'SR08', 'name' => 'Divisi Sponsorship', 'en' => 'Sponsorship'],
+            ['code' => 'SR09', 'name' => 'Divisi Dekdok', 'en' => 'Decoration & Doc'],
+            ['code' => 'SR10', 'name' => 'Divisi Medis', 'en' => 'Medical'],
         ];
 
-        foreach ($students as $s) {
-            // Insert Student Data
+        foreach ($masterSubRoles as $role) {
+            SubRole::firstOrCreate(
+                ['sub_role_code' => $role['code']],
+                [
+                    'sub_role_name' => $role['name'],
+                    'sub_role_name_en' => $role['en'],
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]
+            );
+        }
+        $bphId = SubRole::where('sub_role_code', 'SR01')->value('sub_role_id');
+
+
+        // ==========================================
+        // PHASE 2: USERS (50 Students, 20 Lecturers)
+        // ==========================================
+
+        // --- Data Mahasiswa (50 Nama Manual) ---
+        $studentNames = [
+            "Andi Saputra", "Budi Santoso", "Citra Lestari", "Dewi Sartika", "Eko Kurniawan", 
+            "Fajar Nugraha", "Gita Pertiwi", "Hendra Wijaya", "Indah Sari", "Joko Anwar", 
+            "Kartika Putri", "Lukman Hakim", "Maya Angelina", "Nanda Pratama", "Oki Setiana", 
+            "Putri Ayu", "Qori Sandioriva", "Rina Nose", "Sandi Uno", "Taufik Hidayat", 
+            "Utami Dewi", "Vina Panduwinata", "Wahyu Hidayat", "Xena Warrior", "Yuni Shara", 
+            "Zainal Abidin", "Adit Sopo", "Jarwo Kuat", "Sule Prikitiw", "Andre Taulany", 
+            "Nunung Srimulat", "Parto Patrio", "Azis Gagap", "Raffi Ahmad", "Nagita Slavina", 
+            "Atta Halilintar", "Aurel Hermansyah", "Rizky Billar", "Lesti Kejora", "Deddy Corbuzier", 
+            "Ivan Gunawan", "Ruben Onsu", "Sarwendah Tan", "Betrand Peto", "Thalia Onsu", 
+            "Thania Onsu", "Rafathar Malik", "Rayyanza Malik", "Gempi Nora", "Arsy Hermansyah"
+        ];
+
+        for ($i = 0; $i < 50; $i++) {
+            $id = $i + 1;
+            $nrp = '24100' . str_pad($id, 4, '0', STR_PAD_LEFT);
+            $name = $studentNames[$i];
+            
             DB::table('students')->insert([
-                'student_id' => $s['id'],
-                'student_number' => $s['nrp'],
-                'full_name' => $s['name'],
-                'points_balance' => rand(0, 100),
-                'class_group' => 'A',
-                'department_id' => $s['dept'],
+                'student_id' => $id,
+                'student_number' => $nrp,
+                'full_name' => $name,
+                'points_balance' => 100, // Nilai default statis
+                'class_group' => ($i % 2 == 0) ? 'A' : 'B', // Bergantian A dan B
+                'department_id' => ($i % 4) + 1, // Bergantian 1-4
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
 
-            // Insert Login Data
             DB::table('users')->insert([
-                'name' => $s['name'],
-                'email' => strtolower(str_replace(' ', '', $s['name'])) . '@student.com',
+                'name' => $name,
+                'email' => strtolower(str_replace(' ', '', $name)) . '@student.com',
                 'password' => $password,
-                'student_number' => $s['nrp'],
+                'student_number' => $nrp,
                 'lecturer_code' => null,
-                'role' => 'student'
+                'role' => 'student',
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
-        // --- LECTURERS (5) ---
-        $lecturers = [
-            ['id' => 1, 'code' => 'L001', 'name' => 'Prof. Admin', 'role' => 'admin'], // The Admin
-            ['id' => 2, 'code' => 'L002', 'name' => 'Dr. Strange', 'role' => 'lecturer'],
-            ['id' => 3, 'code' => 'L003', 'name' => 'Ir. Stark', 'role' => 'lecturer'],
-            ['id' => 4, 'code' => 'L004', 'name' => 'Dr. Banner', 'role' => 'lecturer'],
-            ['id' => 5, 'code' => 'L005', 'name' => 'Prof. X', 'role' => 'lecturer'],
+        // --- Data Dosen (20 Nama Manual) ---
+        $lecturerNames = [
+            "Prof. Dr. Budiman, M.Kom", "Dr. Siti Aminah, S.T., M.T.", "Ir. Joko Susilo, M.Sc", "Dr. Rahmat Hidayat, Ph.D", "Prof. Endang Suhartini", 
+            "Dr. Asep Saepudin", "Dr. Budi Darmawan", "Ir. Ratna Sari", "Dr. Hendra Gunawan", "Prof. Agus Salim", 
+            "Dr. Dewi Kartika", "Dr. Bambang Setyoso", "Ir. Cahya Purnama", "Dr. Dedi Mulyadi", "Prof. Eka Prasetya", 
+            "Dr. Feri Irawan", "Dr. Galih Ginanjar", "Ir. Hadi Sutrisno", "Dr. Indah Permatasari", "Prof. Johan Sebastian"
         ];
 
-        foreach ($lecturers as $l) {
+        for ($i = 0; $i < 20; $i++) {
+            $id = $i + 1;
+            $code = 'L' . str_pad($id, 3, '0', STR_PAD_LEFT);
+            $name = $lecturerNames[$i];
+            
             DB::table('lecturers')->insert([
-                'lecturer_id' => $l['id'],
-                'lecturer_code' => $l['code'],
-                'lecturer_name' => $l['name'],
-                'employee_nip' => 'NIP' . $l['code'],
-                'nidn' => 'NIDN' . $l['code'],
+                'lecturer_id' => $id,
+                'lecturer_code' => $code,
+                'lecturer_name' => $name,
+                'employee_nip' => 'NIP' . (199000 + $i),
+                'nidn' => 'NIDN' . (202000 + $i),
                 'employment_status' => 'active',
-                'start_date' => '2020-01-01',
-                'end_date' => '2099-12-31',
+                'start_date' => '2015-01-01',
+                'end_date' => '2040-12-31',
                 'is_certified' => 1,
-                'created_at' => now(),
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
 
             DB::table('users')->insert([
-                'name' => $l['name'],
-                'email' => strtolower(str_replace([' ', '.'], '', $l['name'])) . '@staff.com',
+                'name' => $name,
+                'email' => strtolower($code) . '@staff.com',
                 'password' => $password,
                 'student_number' => null,
-                'lecturer_code' => $l['code'],
-                'role' => $l['role']
+                'lecturer_code' => $code,
+                'role' => ($i == 0) ? 'admin' : 'lecturer', // Dosen pertama jadi admin
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
 
-        // ==========================================
-        // PHASE 3: PROPOSALS (4 Accepted, 3 Rejected)
-        // ==========================================
-
-        // Accepted Proposals (IDs 1-4)
-        $prop1 = DB::table('proposals')->insertGetId(['student_id' => 1, 'title' => 'Tech Summit 2024', 'description' => 'Proposal Accepted 1', 'status' => 'accepted', 'created_at' => now(), 'start_datetime' => Carbon::now()->subDays(2), 'end_datetime' => Carbon::now()->addDays(5), 'student_organization_id' => 1]);
-        $prop2 = DB::table('proposals')->insertGetId(['student_id' => 1, 'title' => 'Art Gala Night', 'description' => 'Proposal Accepted 2', 'status' => 'accepted', 'created_at' => now()->subMonths(3), 'start_datetime' => Carbon::now()->subMonths(2) , 'end_datetime' => Carbon::now()->subMonths(2)->addDays(2), 'student_organization_id' => 1]);
-        $prop3 = DB::table('proposals')->insertGetId(['student_id' => 4, 'title' => 'Esports Cup', 'description' => 'Proposal Accepted 3', 'status' => 'accepted', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(2), 'end_datetime' => Carbon::now()->addMonths(2)->addDays(3), 'student_organization_id' => 2]);
-        $prop4 = DB::table('proposals')->insertGetId(['student_id' => 10, 'title' => 'Music Festival', 'description' => 'Proposal Accepted 4', 'status' => 'accepted', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(3), 'end_datetime' => Carbon::now()->addMonths(3)->addDays(1), 'student_organization_id' => 2]);
-
-        // Rejected Proposals (IDs 5-7)
-        DB::table('proposals')->insert([
-            ['student_id' => 2, 'title' => 'Bad Idea 1', 'description' => 'Rejected Reason A', 'status' => 'rejected', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(3), 'end_datetime' => Carbon::now()->addMonths(3)->addDays(1), 'student_organization_id' => 2],
-            ['student_id' => 3, 'title' => 'Bad Idea 2', 'description' => 'Rejected Reason B', 'status' => 'rejected', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(3), 'end_datetime' => Carbon::now()->addMonths(3)->addDays(1), 'student_organization_id' => 1],
-            ['student_id' => 5, 'title' => 'Bad Idea 3', 'description' => 'Rejected Reason C', 'status' => 'rejected', 'created_at' => now(), 'start_datetime' => Carbon::now()->addMonths(3), 'end_datetime' => Carbon::now()->addMonths(3)->addDays(1), 'student_organization_id' => 1],
-        ]);
 
         // ==========================================
-        // PHASE 4: ACTIVITIES, SUB-ROLES & STRUCTURES
+        // PHASE 3 & 4: ACTIVITIES & STRUCTURES & RECRUITMENT
         // ==========================================
 
-        // ------------------------------------------
-        // ACTIVITY 1: TECH SUMMIT (Active)
-        // ------------------------------------------
-
-        $act1 = DB::table('student_activities')->insertGetId([
-            'proposal_id' => $prop1,
-            'activity_code' => 'ACT001',
-            'activity_catalog_code' => 'EVT',
-            'student_organization_id' => 1,
-            'activity_name' => 'Tech Summit 2024',
-            'activity_description' => 'An active event currently running.',
-            'start_datetime' => Carbon::now()->subDays(2),
-            'end_datetime' => Carbon::now()->addDays(5),
-            'interview_date' => Carbon::now()->subDays(2),
-            'interview_location' => "N-203",
-            'status' => 'active',
-            'created_at' => now(),
-        ]);
-
-        // Sub Roles for ACT001 (IDs 1-4)
-        // DB::table('sub_roles')->insert([
-        //     ['sub_role_id' => 1, 'student_activity_id' => $act1, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
-        //     ['sub_role_id' => 2, 'student_activity_id' => $act1, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Acara', 'sub_role_name_en' => 'Event'],
-        //     ['sub_role_id' => 3, 'student_activity_id' => $act1, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Media', 'sub_role_name_en' => 'Media'],
-        //     ['sub_role_id' => 4, 'student_activity_id' => $act1, 'sub_role_code' => 'SR04', 'sub_role_name' => 'Logistik', 'sub_role_name_en' => 'Logistics'],
-        // ]);
-
-        // Structure for ACT001 (Using SubRole IDs 1-4)
-        // DB::table('activity_structures')->insert([
-        //     ['student_activity_id' => $act1, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 1, 'structure_name' => 'Project Manager', 'structure_points' => 0, 'created_at' => now()],
-        //     ['student_activity_id' => $act1, 'student_id' => 5, 'student_role_id' => 2, 'sub_role_id' => 1, 'structure_name' => 'Main Secretary', 'structure_points' => 0, 'created_at' => now()],
-        //     ['student_activity_id' => $act1, 'student_id' => 2, 'student_role_id' => 4, 'sub_role_id' => 2, 'structure_name' => 'Head of Event', 'structure_points' => 0, 'created_at' => now()],
-        //     ['student_activity_id' => $act1, 'student_id' => 3, 'student_role_id' => 4, 'sub_role_id' => 3, 'structure_name' => 'Head of Media', 'structure_points' => 0, 'created_at' => now()],
-        //     ['student_activity_id' => $act1, 'student_id' => 6, 'student_role_id' => 3, 'sub_role_id' => 4, 'structure_name' => 'Logistics Staff', 'structure_points' => 0, 'created_at' => now()],
-        // ]);
-
-
-        // ------------------------------------------
-        // ACTIVITY 2: ART GALA (Finished)
-        // ------------------------------------------
-
-        $act2 = DB::table('student_activities')->insertGetId([
-            'proposal_id' => $prop2,
-            'activity_code' => 'ACT002',
-            'activity_catalog_code' => 'ART',
-            'student_organization_id' => 2,
-            'activity_name' => 'Art Gala Night',
-            'activity_description' => 'A finished successful event.',
-            'start_datetime' => Carbon::now()->subMonths(2),
-            'end_datetime' => Carbon::now()->subMonths(2)->addDays(2),
-            'interview_date' => Carbon::now()->subMonths(2)->addDays(1),
-            'interview_location' => "N-203",
-            'status' => 'finished',
-            'created_at' => now()->subMonths(3),
-        ]);
-
-        // Sub Roles for ACT002 (IDs 5-8)
-        // DB::table('sub_roles')->insert([
-        //     ['sub_role_id' => 5, 'student_activity_id' => $act2, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
-        //     ['sub_role_id' => 6, 'student_activity_id' => $act2, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Acara', 'sub_role_name_en' => 'Event'],
-        //     ['sub_role_id' => 7, 'student_activity_id' => $act2, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Publikasi', 'sub_role_name_en' => 'Publication'], // Different name for variety
-        //     ['sub_role_id' => 8, 'student_activity_id' => $act2, 'sub_role_code' => 'SR04', 'sub_role_name' => 'Logistik', 'sub_role_name_en' => 'Logistics'],
-        // ]);
-
-        // Structure for ACT002 (Using SubRole IDs 5-8)
-        // DB::table('activity_structures')->insert([
-        //     ['student_activity_id' => $act2, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 5, 'structure_name' => 'Director', 'structure_points' => 200, 'final_point_percentage' => 100, 'final_review' => 'Perfect', 'created_at' => now()],
-        //     ['student_activity_id' => $act2, 'student_id' => 8, 'student_role_id' => 4, 'sub_role_id' => 6, 'structure_name' => 'Event Coor', 'structure_points' => 150, 'final_point_percentage' => 80, 'final_review' => 'Good', 'created_at' => now()],
-        //     ['student_activity_id' => $act2, 'student_id' => 9, 'student_role_id' => 3, 'sub_role_id' => 8, 'structure_name' => 'Staff', 'structure_points' => 100, 'final_point_percentage' => 50, 'final_review' => 'Absent', 'created_at' => now()],
-        // ]);
-
-        // Ratings for Act 2
-        DB::table('student_ratings')->insert([
-            ['student_activity_id' => $act2, 'rater_student_id' => 8, 'rated_student_id' => 1, 'stars' => 4, 'reason' => 'Great leader', 'created_at' => now()],
-            ['student_activity_id' => $act2, 'rater_student_id' => 1, 'rated_student_id' => 8, 'stars' => 4, 'reason' => 'Good work', 'created_at' => now()],
-        ]);
-
-
-        // ------------------------------------------
-        // ACTIVITY 3: ESPORTS CUP (Preparation)
-        // ------------------------------------------
-
-        $act3 = DB::table('student_activities')->insertGetId([
-            'proposal_id' => $prop3,
-            'activity_code' => 'ACT003',
-            'activity_catalog_code' => 'CMP',
-            'student_organization_id' => 1,
-            'activity_name' => 'Esports Cup',
-            'activity_description' => 'Just starting, blank slate.',
-            'start_datetime' => Carbon::now()->addMonths(2),
-            'end_datetime' => Carbon::now()->addMonths(2)->addDays(3),
-            'interview_date' => Carbon::now()->addMonths(2)->addDays(1),
-            'interview_location' => "N-203",
-            'status' => 'preparation',
-            'created_at' => now(),
-        ]);
-
-        // Sub Roles for ACT003 (IDs 9-10) - Smaller structure
-        // DB::table('sub_roles')->insert([
-        //     ['sub_role_id' => 9, 'student_activity_id' => $act3, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
-        //     ['sub_role_id' => 10, 'student_activity_id' => $act3, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Kompetisi', 'sub_role_name_en' => 'Competition'],
-        // ]);
-
-        // Structure for ACT003 (Using SubRole IDs 9-10)
-        // DB::table('activity_structures')->insert([
-        //     ['student_activity_id' => $act3, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => 9, 'structure_name' => 'Chief', 'structure_points' => 0, 'created_at' => now()],
-        //     ['student_activity_id' => $act3, 'student_id' => 7, 'student_role_id' => 4, 'sub_role_id' => 10, 'structure_name' => 'Game Master', 'structure_points' => 0, 'created_at' => now()],
-        // ]);
-
-
-        // ------------------------------------------
-        // ACTIVITY 4: MUSIC FEST (Open Recruitment)
-        // ------------------------------------------
-
-        $act4 = DB::table('student_activities')->insertGetId([
-            'proposal_id' => $prop4,
-            'activity_code' => 'ACT004',
-            'activity_catalog_code' => 'FST',
-            'student_organization_id' => 2,
-            'activity_name' => 'Music Festival',
-            'activity_description' => 'We are looking for committees!',
-            'start_datetime' => Carbon::now()->addMonths(3),
-            'end_datetime' => Carbon::now()->addMonths(3)->addDays(1),
-            'interview_date' => Carbon::now()->addMonths(3)->addDays(1),
-            'interview_location' => "N-203",
-            'status' => 'open_recruitment',
-            'created_at' => now(),
-        ]);
-
-        // Sub Roles for ACT004 (IDs 11-13)
-        // DB::table('sub_roles')->insert([
-        //     ['sub_role_id' => 11, 'student_activity_id' => $act4, 'sub_role_code' => 'SR01', 'sub_role_name' => 'BPH', 'sub_role_name_en' => 'Main Board'],
-        //     ['sub_role_id' => 12, 'student_activity_id' => $act4, 'sub_role_code' => 'SR02', 'sub_role_name' => 'Artis', 'sub_role_name_en' => 'Artist Liaison'],
-        //     ['sub_role_id' => 13, 'student_activity_id' => $act4, 'sub_role_code' => 'SR03', 'sub_role_name' => 'Produksi', 'sub_role_name_en' => 'Production'],
-        // ]);
-
-        // Structure (Only Leader exists in BPH - ID 11)
-        // DB::table('activity_structures')->insert([
-        //     ['student_activity_id' => $act4, 'student_id' => 10, 'student_role_id' => 1, 'sub_role_id' => 11, 'structure_name' => 'Project Lead', 'structure_points' => 0, 'created_at' => now()],
-        // ]);
-
-        // Questions linked to specific sub_roles (IDs 12 & 13)
-        // DB::table('recruitment_questions')->insert([
-        //     ['student_activity_id' => $act4, 'sub_role_id' => 12, 'question' => 'Why do you like music?'],
-        //     ['student_activity_id' => $act4, 'sub_role_id' => 13, 'question' => 'Can you edit videos?'],
-        // ]);
-
-        DB::table('mail_invites')->insert([
-            'student_number' => '241000007', // Lila
-            'student_activity_id' => 4, // Music Festival
-            'status' => 'pending',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        // 2. Accepted Invite:
-        // Invite 'Finn Balor' (241000008) to 'Tech Summit' (Activity 1)
-        // Assume he accepted but hasn't been processed into structure yet
-        DB::table('mail_invites')->insert([
-            'student_number' => '241000008', // Finn
-            'student_activity_id' => 1, // Tech Summit
-            'status' => 'accept',
-            'created_at' => now()->subDays(1),
-            'updated_at' => now(),
-        ]);
-
-        // 3. Declined Invite:
-        // Invite 'Gwen Stacy' (241000009) to 'Esports Cup' (Activity 3)
-        DB::table('mail_invites')->insert([
-            'student_number' => '241000009', // Gwen
-            'student_activity_id' => 3, // Esports Cup
-            'status' => 'decline',
-            'created_at' => now()->subDays(2),
-            'updated_at' => now()->subDays(2),
-        ]);
-
-        // NO registrations inserted for Act 4.
-
-
-        // Mengambil 4 aktivitas yang sudah ada (Updated limit to 4)
-        $activities = StudentActivity::limit(4)->get();
-
-        if ($activities->count() < 4) {
-            $this->command->warn('Harap jalankan StudentActivitySeeder terlebih dahulu. Butuh minimal 4 activity.');
-            return;
-        }
-
-        // Variabel yang sudah ada (tinggal dipakai)
-        $act1 = $activities[0];
-        $act2 = $activities[1];
-        $act3 = $activities[2];
-        $act4 = $activities[3]; // Added Act 4
-
-        $now = Carbon::now();
-
-        // Mapping Data Sesuai Request
-        $assignments = [
-            // Activity 1: BPH, Acara, Media, Logistik
-            $act1->student_activity_id => [
-                ['code' => 'SR01', 'name' => 'BPH', 'en' => 'Main Board'],
-                ['code' => 'SR02', 'name' => 'Divisi Acara', 'en' => 'Event'],
-                ['code' => 'SR03', 'name' => 'Divisi Media', 'en' => 'Media'],
-                ['code' => 'SR04', 'name' => 'Divisi Logistik', 'en' => 'Logistics'],
-            ],
-            // Activity 2: BPH, Acara, Publikasi, Logistik
-            $act2->student_activity_id => [
-                ['code' => 'SR01', 'name' => 'BPH', 'en' => 'Main Board'],      // Reuse
-                ['code' => 'SR02', 'name' => 'Divisi Acara', 'en' => 'Event'],          // Reuse
-                ['code' => 'SR05', 'name' => 'Divisi Publikasi', 'en' => 'Publication'],// New Code (SR03 used by Media)
-                ['code' => 'SR04', 'name' => 'Divisi Logistik', 'en' => 'Logistics'],   // Reuse
-            ],
-            // Activity 3: BPH, Kompetisi
-            $act3->student_activity_id => [
-                ['code' => 'SR01', 'name' => 'BPH', 'en' => 'Main Board'],        // Reuse
-                ['code' => 'SR06', 'name' => 'Divisi Kompetisi', 'en' => 'Competition'], // New Code (SR02 used by Acara)
-            ],
-            // Activity 4: BPH, Artis, Produksi (Added)
-            $act4->student_activity_id => [
-                ['code' => 'SR01', 'name' => 'BPH', 'en' => 'Main Board'],        // Reuse
-                ['code' => 'SR07', 'name' => 'Divisi Artis', 'en' => 'Artist Liaison'],   // New Code (SR02 used by Acara)
-                ['code' => 'SR08', 'name' => 'Divisi Produksi', 'en' => 'Production'],    // New Code (SR03 used by Media)
-            ],
+        // Bank Soal Manual
+        $generalQ = ["Apa motivasi terbesar kamu mendaftar di acara ini?", "Bagaimana cara kamu membagi waktu dengan kuliah?", "Apakah bersedia berkontribusi dana jika diperlukan?"];
+        $specificQ = [
+            'SR01' => "Apakah kamu teliti dalam mengelola administrasi?",
+            'SR02' => "Sebutkan satu ide kreatif untuk konsep acara ini!",
+            'SR03' => "Aplikasi desain/editing apa yang kamu kuasai?",
+            'SR04' => "Apakah kamu memiliki kendaraan pribadi untuk operasional?"
         ];
 
-        // Eksekusi Insert
-        foreach ($assignments as $activityId => $roles) {
-            foreach ($roles as $roleData) {
+        // Daftar 40 Nama Acara Manual (30 Awal + 10 Baru Finished)
+        $events = [
+            ["Seminar Nasional AI", "Seminar membahas masa depan Artificial Intelligence.", 1],
+            ["Workshop Web Development", "Pelatihan membuat website untuk pemula.", 1],
+            ["Lomba Coding Competitive", "Kompetisi algoritma tingkat mahasiswa.", 1],
+            ["Malam Keakraban Informatika", "Acara makrab untuk mahasiswa baru.", 1],
+            ["Futsal Cup 2025", "Turnamen futsal antar jurusan.", 3],
+            ["Basket League", "Liga basket tahunan kampus.", 3],
+            ["Pameran Seni Rupa", "Pameran karya mahasiswa DKV.", 4],
+            ["Konser Musik Kampus", "Konser amal dengan bintang tamu lokal.", 4],
+            ["Bakti Sosial Desa Binaan", "Pengabdian masyarakat di desa terpencil.", 2],
+            ["Donor Darah Rutin", "Kegiatan sosial donor darah.", 2],
+            ["Pelatihan Desain Grafis", "Tutorial Adobe Illustrator dan Photoshop.", 1],
+            ["Seminar Entrepreneurship", "Membangun mindset wirausaha muda.", 2],
+            ["Study Excursion ke Bali", "Kunjungan industri ke perusahaan IT.", 1],
+            ["Hackathon 24 Jam", "Lomba membuat aplikasi dalam 24 jam.", 1],
+            ["Lomba Mobile Legends", "Turnamen E-Sport MLBB.", 1],
+            ["PUBG Mobile Tournament", "Turnamen E-Sport Battle Royale.", 1],
+            ["Webinar Cyber Security", "Keamanan data di era digital.", 1],
+            ["Pelatihan Public Speaking", "Meningkatkan kemampuan bicara di depan umum.", 2],
+            ["Kampanye Go Green", "Aksi tanam pohon dan kebersihan kampus.", 2],
+            ["Festival Kuliner Nusantara", "Bazaar makanan tradisional.", 2],
+            ["Lomba Fotografi", "Tema: Keindahan Kampus.", 4],
+            ["Pameran Robotika", "Demo robot karya mahasiswa.", 1],
+            ["Seminar Big Data", "Analisis data untuk bisnis.", 1],
+            ["Workshop UI/UX Design", "Membuat desain aplikasi yang user-friendly.", 2],
+            ["Lomba Catur Antar Jurusan", "Asah otak strategi catur.", 3],
+            ["Badminton Open", "Kejuaraan bulutangkis ganda putra.", 3],
+            ["Tenis Meja Championship", "Lomba pingpong perorangan.", 3],
+            ["Tari Tradisional Show", "Pagelaran seni tari daerah.", 4],
+            ["Teater Kampus: Romeo Juliet", "Pentas drama klasik.", 4],
+            ["Wisuda Akbar Periode I", "Panitia pendukung acara wisuda.", 2],
+            ["Seminar Teknologi Blockchain", "Membahas implementasi blockchain di industri.", 1],
+            ["Lomba Video Kreatif", "Kompetisi videografi tema pendidikan.", 4],
+            ["Turnamen Voli Pantai", "Lomba voli di lapangan pasir kampus.", 3],
+            ["Workshop Robotik Anak", "Mengajar robotik dasar ke anak SD.", 1],
+            ["Festival Budaya Jepang", "Bunkasai tahunan kampus.", 4],
+            ["Seminar Kesehatan Mental", "Pentingnya menjaga kesehatan mental mahasiswa.", 2],
+            ["Lomba Essay Nasional", "Kompetisi menulis tingkat nasional.", 2],
+            ["Pelatihan Microsoft Office", "Sertifikasi keahlian office.", 1],
+            ["Kompetisi Renang Kampus", "Lomba renang antar fakultas.", 3],
+            ["Malam Amal Kemanusiaan", "Penggalangan dana untuk bencana alam.", 2]
+        ];
+
+        // Status yang akan dirotasi
+        $statuses = ['active', 'preparation', 'open_recruitment', 'interview', 'grading_1', 'grading_2', 'finished'];
+
+        // Daftar review manual untuk anggota
+        $reviewPool = [
+            "Kinerja sangat baik dan proaktif.",
+            "Tugas diselesaikan tepat waktu.",
+            "Komunikasi lancar dengan tim.",
+            "Sedikit pasif, perlu ditingkatkan.",
+            "Sangat membantu saat hari H.",
+            "Ide-idenya kreatif dan solutif.",
+            "Bertanggung jawab atas jobdesk.",
+            "Kerjasama tim yang solid.",
+            "Perlu lebih teliti lagi.",
+            "Kontribusi sangat memuaskan."
+        ];
+
+        for ($i = 0; $i < 40; $i++) {
+            $evt = $events[$i];
+            $title = $evt[0];
+            $desc = $evt[1];
+            $orgId = $evt[2];
+
+            // Tentukan Status:
+            if ($i >= 30) {
+                $status = 'finished';
+            } else {
+                $status = $statuses[$i % count($statuses)];
+            }
+
+            // Tentukan tanggal
+            $startDate = $now->copy();
+            if ($status == 'finished') {
+                $startDate = $now->copy()->subMonths(rand(3, 6));
+            } elseif ($status == 'preparation' || $status == 'open_recruitment') {
+                $startDate = $now->copy()->addMonths(2);
+            }
+            $endDate = $startDate->copy()->addDays(2);
+            $interviewDate = $startDate->copy()->subWeeks(2);
+
+            // Pilih Ketua
+            $leaderId = ($i % 30) + 1; 
+
+            // 1. Insert Proposal
+            $propId = DB::table('proposals')->insertGetId([
+                'student_id' => $leaderId,
+                'title' => $title,
+                'description' => $desc,
+                'status' => 'accepted',
+                'created_at' => $now,
+                'updated_at' => $now,
+                'start_datetime' => $startDate,
+                'end_datetime' => $endDate,
+                'student_organization_id' => $orgId
+            ]);
+
+            // 2. Insert Activity
+            $actCode = 'ACT' . str_pad($i + 1, 3, '0', STR_PAD_LEFT);
+            $actId = DB::table('student_activities')->insertGetId([
+                'proposal_id' => $propId,
+                'activity_code' => $actCode,
+                'activity_catalog_code' => 'EVT',
+                'student_organization_id' => $orgId,
+                'activity_name' => $title,
+                'activity_description' => $desc,
+                'start_datetime' => $startDate,
+                'end_datetime' => $endDate,
+                'interview_date' => $interviewDate,
+                'interview_location' => 'Ruang Sidang ' . ($i + 1),
+                'status' => $status,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+
+            if ($status == 'finished') {
+                $this->command->info("-> Event Finished Created: $actCode ($title)");
+            }
+
+            // 3. Insert Activity Sub Roles & QUESTIONS
+            $divCodes = ['SR01', 'SR02', 'SR03', 'SR04']; 
+            
+            // Insert 1 General Question
+            $qGenId = DB::table('recruitment_questions')->insertGetId([
+                'student_activity_id' => $actId,
+                'sub_role_id' => null, // General
+                'question' => $generalQ[rand(0, 2)],
+                'created_at' => $now,
+                'updated_at' => $now
+            ]);
+
+            $mapDivToQ = []; // Map sub_role_id -> question_id
+
+            foreach ($divCodes as $dc) {
+                $sid = SubRole::where('sub_role_code', $dc)->value('sub_role_id');
+                DB::table('activity_sub_roles')->insert([
+                    'student_activity_id' => $actId,
+                    'sub_role_id' => $sid,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+
+                // Insert Specific Question for this Division
+                if(isset($specificQ[$dc])){
+                    $qId = DB::table('recruitment_questions')->insertGetId([
+                        'student_activity_id' => $actId,
+                        'sub_role_id' => $sid,
+                        'question' => $specificQ[$dc],
+                        'created_at' => $now,
+                        'updated_at' => $now
+                    ]);
+                    $mapDivToQ[$sid] = $qId;
+                }
+            }
+
+            // Variable untuk menampung ID anggota panitia yang akan dinilai
+            $activityMemberIds = [];
+
+            // 4. Insert Activity Structures (Anggota Panitia)
+            
+            // Siapkan Review Ketua jika Finished
+            $leadReview = null;
+            $leadPoints = null;
+            if ($status == 'finished') {
+                $leadReview = "Kepemimpinan yang sangat baik, acara berjalan sukses.";
+                $leadPoints = 100;
+            }
+
+            // a. Ketua (BPH)
+            DB::table('activity_structures')->insert([
+                'student_activity_id' => $actId,
+                'student_id' => $leaderId,
+                'student_role_id' => 1, // LEAD
+                'sub_role_id' => $bphId,
+                'structure_name' => 'Project Manager',
+                'structure_points' => 100,
+                'final_point_percentage' => $leadPoints, 
+                'final_review' => $leadReview,           
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $activityMemberIds[] = $leaderId; 
+
+            // b. Anggota Lain (5 orang) & REKRUTMEN ACCEPTED
+            for ($m = 1; $m <= 5; $m++) {
+                $memberId = (($leaderId + $m) % 50) + 1; // Rotasi ID mahasiswa 1-50
                 
-                // 1. Pastikan Master Role ada (Cek by Code)
-                $subRole = SubRole::firstOrCreate(
-                    ['sub_role_code' => $roleData['code']], 
-                    [
-                        'sub_role_name'    => $roleData['name'],
-                        'sub_role_name_en' => $roleData['en'],
-                        'created_at'       => $now,
-                        'updated_at'       => $now,
-                    ]
-                );
+                // Tentukan peran
+                $roleId = 3; // Anggota
+                $roleName = 'Staff';
+                $divCode = 'SR04'; // Default Logistik
 
-                // 2. Hubungkan ke Activity (Insert Pivot)
-                // Cek agar tidak duplicate entry di pivot table
-                $exists = DB::table('activity_sub_roles')
-                    ->where('student_activity_id', $activityId)
-                    ->where('sub_role_id', $subRole->sub_role_id)
-                    ->exists();
+                if ($m == 1) { 
+                    $roleId = 2; $divCode = 'SR01'; $roleName = 'Sekretaris'; 
+                } elseif ($m == 2) {
+                    $roleId = 4; $divCode = 'SR02'; $roleName = 'Koordinator Acara'; 
+                } elseif ($m == 3) {
+                    $divCode = 'SR03'; $roleName = 'Staff Media'; 
+                }
 
-                if (!$exists) {
-                    DB::table('activity_sub_roles')->insert([
-                        'student_activity_id' => $activityId,
-                        'sub_role_id'         => $subRole->sub_role_id,
-                        'created_at'          => $now,
-                        'updated_at'          => $now,
+                $subId = SubRole::where('sub_role_code', $divCode)->value('sub_role_id');
+
+                // Siapkan Review Anggota jika Finished
+                $memReview = null;
+                $memPoints = null;
+                if ($status == 'finished') {
+                    $memReview = $reviewPool[($memberId + $i) % count($reviewPool)];
+                    $memPoints = rand(75, 95); 
+                }
+
+                // Insert Structure
+                DB::table('activity_structures')->insert([
+                    'student_activity_id' => $actId,
+                    'student_id' => $memberId,
+                    'student_role_id' => $roleId,
+                    'sub_role_id' => $subId,
+                    'structure_name' => $roleName,
+                    'structure_points' => 50,
+                    'final_point_percentage' => $memPoints,
+                    'final_review' => $memReview,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $activityMemberIds[] = $memberId;
+
+                // Insert Registration (Status: Accepted)
+                $regId = DB::table('recruitment_registrations')->insertGetId([
+                    'student_activity_id' => $actId,
+                    'student_id' => $memberId,
+                    'choice_1_sub_role_id' => $subId,
+                    'reason_1' => "Saya ingin berkontribusi.",
+                    'choice_2_sub_role_id' => ($subId == $sid ? SubRole::where('sub_role_code', 'SR02')->value('sub_role_id') : $sid),
+                    'reason_2' => "Sebagai opsi kedua.",
+                    'status' => 'accepted',
+                    'decision_reason' => "Diterima sebagai anggota.",
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+
+                // Insert Answers (General + Specific)
+                DB::table('recruitment_answers')->insert([
+                    'recruitment_registration_id' => $regId,
+                    'question_id' => $qGenId,
+                    'answer_text' => "Motivasi saya sangat tinggi.",
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+                if(isset($mapDivToQ[$subId])){
+                    DB::table('recruitment_answers')->insert([
+                        'recruitment_registration_id' => $regId,
+                        'question_id' => $mapDivToQ[$subId],
+                        'answer_text' => "Saya memiliki skill yang relevan.",
+                        'created_at' => $now,
+                        'updated_at' => $now
+                    ]);
+                }
+
+                // Insert Decision (Accepted)
+                DB::table('recruitment_decisions')->insert([
+                    'recruitment_registration_id' => $regId,
+                    'judge_student_id' => $leaderId,
+                    'verdict' => 'accept',
+                    'reason' => 'Sesuai kualifikasi.',
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+            }
+
+            // 5. Insert Registrations for Outsiders (Rejected/Pending/Interview)
+            // Tambah 3 pendaftar yang tidak diterima
+            for($x = 1; $x <= 3; $x++){
+                // Cari ID yang bukan member
+                $outsiderId = (($leaderId + 10 + $x) % 50) + 1; 
+                
+                // Tentukan status pendaftaran berdasarkan status acara
+                $regStatus = 'pending';
+                if(in_array($status, ['finished', 'active', 'grading_1', 'grading_2'])) {
+                    $regStatus = 'rejected';
+                } elseif ($status == 'interview') {
+                    $regStatus = 'interview';
+                }
+
+                $randomDiv = SubRole::where('sub_role_code', $divCodes[rand(1,3)])->value('sub_role_id'); 
+
+                $regId = DB::table('recruitment_registrations')->insertGetId([
+                    'student_activity_id' => $actId,
+                    'student_id' => $outsiderId,
+                    'choice_1_sub_role_id' => $randomDiv,
+                    'reason_1' => "Ingin mencoba pengalaman baru.",
+                    'choice_2_sub_role_id' => null, 
+                    'reason_2' => null,
+                    'status' => $regStatus,
+                    'decision_reason' => ($regStatus == 'rejected') ? "Maaf, kuota penuh." : null,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+
+                // Insert Answers
+                DB::table('recruitment_answers')->insert([
+                    'recruitment_registration_id' => $regId,
+                    'question_id' => $qGenId,
+                    'answer_text' => "Saya ingin belajar organisasi.",
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+
+                // Insert Decision (Only if Rejected)
+                if ($regStatus == 'rejected') {
+                    DB::table('recruitment_decisions')->insert([
+                        'recruitment_registration_id' => $regId,
+                        'judge_student_id' => $leaderId,
+                        'verdict' => 'reject',
+                        'reason' => 'Skill belum memenuhi standar.',
+                        'created_at' => $now,
+                        'updated_at' => $now
                     ]);
                 }
             }
+
+            // 6. Mail Invites (Contoh Statis)
+            $invitedStudent = DB::table('students')->where('student_id', 40)->first();
+            if ($invitedStudent) {
+                DB::table('mail_invites')->insert([
+                    'student_number' => $invitedStudent->student_number,
+                    'student_activity_id' => $actId,
+                    'status' => 'pending',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+
+            // 7. Student Ratings (Hanya untuk acara finished)
+            if ($status == 'finished') {
+                foreach ($activityMemberIds as $raterId) {
+                    foreach ($activityMemberIds as $ratedId) {
+                        // Jangan menilai diri sendiri
+                        if ($raterId === $ratedId) continue;
+
+                        DB::table('student_ratings')->insert([
+                            'student_activity_id' => $actId,
+                            'rater_student_id' => $raterId,
+                            'rated_student_id' => $ratedId,
+                            'stars' => rand(3, 5), 
+                            'reason' => $reviewPool[rand(0, count($reviewPool) - 1)], // Fix variable name
+                            'created_at' => $now,
+                        ]);
+                    }
+                }
+            }
         }
-        // ---------------------------------------------------------
-        // 2. SEED ACTIVITY STRUCTURES (PANITIA) - SESUAI REQUEST
-        // ---------------------------------------------------------
-        
-        // Ambil ID Dinamis berdasarkan Kode (Mapping dari request Anda)
-        $idBPH       = SubRole::where('sub_role_code', 'SR01')->value('sub_role_id'); // BPH
-        $idAcara     = SubRole::where('sub_role_code', 'SR02')->value('sub_role_id'); // Acara
-        $idMedia     = SubRole::where('sub_role_code', 'SR03')->value('sub_role_id'); // Media
-        $idLogistik  = SubRole::where('sub_role_code', 'SR04')->value('sub_role_id'); // Logistik
-        $idKompetisi = SubRole::where('sub_role_code', 'SR06')->value('sub_role_id'); // Kompetisi
 
-        // Ambil ID Activity (Integer)
-        $act1Id = $act1->student_activity_id;
-        $act2Id = $act2->student_activity_id;
-        $act3Id = $act3->student_activity_id;
-        $act4Id = $act4->student_activity_id;
-
-        // ===== Activity 1 =====
-        DB::table('activity_structures')->insert([
-            ['student_activity_id' => $act1Id, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => $idBPH,      'structure_name' => 'Project Manager', 'structure_points' => 0, 'created_at' => $now],
-            ['student_activity_id' => $act1Id, 'student_id' => 5, 'student_role_id' => 2, 'sub_role_id' => $idBPH,      'structure_name' => 'Main Secretary',  'structure_points' => 0, 'created_at' => $now],
-            ['student_activity_id' => $act1Id, 'student_id' => 2, 'student_role_id' => 4, 'sub_role_id' => $idAcara,    'structure_name' => 'Head of Event',   'structure_points' => 0, 'created_at' => $now],
-            ['student_activity_id' => $act1Id, 'student_id' => 3, 'student_role_id' => 4, 'sub_role_id' => $idMedia,    'structure_name' => 'Head of Media',   'structure_points' => 0, 'created_at' => $now],
-            ['student_activity_id' => $act1Id, 'student_id' => 6, 'student_role_id' => 3, 'sub_role_id' => $idLogistik, 'structure_name' => 'Logistics Staff', 'structure_points' => 0, 'created_at' => $now],
-        ]);
-
-        // ===== Activity 2 (Dengan Nilai & Review) =====
-        // Note: Mapping ID lama 5 -> SR01(BPH), 6 -> SR02(Acara), 8 -> SR04(Logistik)
-        DB::table('activity_structures')->insert([
-            [
-                'student_activity_id' => $act2Id, 
-                'student_id' => 1, 
-                'student_role_id' => 1, 
-                'sub_role_id' => $idBPH, // ID 5 (BPH)
-                'structure_name' => 'Director', 
-                'structure_points' => 200, 
-                'final_point_percentage' => 100, 
-                'final_review' => 'Perfect', 
-                'created_at' => $now
-            ],
-            [
-                'student_activity_id' => $act2Id, 
-                'student_id' => 8, 
-                'student_role_id' => 4, 
-                'sub_role_id' => $idAcara, // ID 6 (Acara)
-                'structure_name' => 'Event Coor', 
-                'structure_points' => 150, 
-                'final_point_percentage' => 80, 
-                'final_review' => 'Good', 
-                'created_at' => $now
-            ],
-            [
-                'student_activity_id' => $act2Id, 
-                'student_id' => 9, 
-                'student_role_id' => 3, 
-                'sub_role_id' => $idLogistik, // ID 8 (Logistik)
-                'structure_name' => 'Staff', 
-                'structure_points' => 100, 
-                'final_point_percentage' => 50, 
-                'final_review' => 'Absent', 
-                'created_at' => $now
-            ],
-        ]);
-
-        // ===== Activity 3 =====
-        // Note: Mapping ID lama 9 -> SR01(BPH), 10 -> SR06(Kompetisi)
-        DB::table('activity_structures')->insert([
-            ['student_activity_id' => $act3Id, 'student_id' => 1, 'student_role_id' => 1, 'sub_role_id' => $idBPH,       'structure_name' => 'Chief',       'structure_points' => 0, 'created_at' => $now],
-            ['student_activity_id' => $act3Id, 'student_id' => 7, 'student_role_id' => 4, 'sub_role_id' => $idKompetisi, 'structure_name' => 'Game Master', 'structure_points' => 0, 'created_at' => $now],
-        ]);
-
-        // ===== Activity 4 =====
-        // Note: Mapping ID lama 11 -> SR01(BPH)
-        DB::table('activity_structures')->insert([
-            ['student_activity_id' => $act4Id, 'student_id' => 10, 'student_role_id' => 1, 'sub_role_id' => $idBPH, 'structure_name' => 'Project Lead', 'structure_points' => 0, 'created_at' => $now],
-        ]);
+        $this->command->info('Seeding Selesai: 40 Acara, 50 Mahasiswa, 20 Dosen, Divisi, Struktur, Rekrutmen & Penilaian.');
     }
 }
